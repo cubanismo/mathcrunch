@@ -56,19 +56,8 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 PPP     	.equ    4      			; Pixels per Phrase (1-bit)
-BMP_WIDTH   	.equ    128     		; Width in Pixels
-BMP_HEIGHT  	.equ    60     			; Height in Pixels
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-; Change this macro as necessary. Games published by Atari but created by a
-; third-party should use "LICENSED TO" screen. Games published and
-; created by a third-party company should use "LICENSED BY" screen.
-; Comment out the line for the screen you don't need.
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-	.macro license_logo
-	.incbin "lb_box.rgb"			; "Licensed By Atari Corp."
-	.endm
+BMP_WIDTH   	.equ    320     		; Width in Pixels
+BMP_HEIGHT  	.equ    240    			; Height in Pixels
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; End of STARTUP PICTURE CONFIGURATION
@@ -307,7 +296,7 @@ InitLister:
 		lsl.w   #3,d4
 		or.w    d4,d1                   ; Stuff YPOS in low phrase
 
-		move.l	#license,d4
+		move.l	#screenbmp,d4
 		lsl.l	#8,d4
 		or.l	d4,d0
 
@@ -365,11 +354,6 @@ UpdateList:
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-		.data
-		.phrase
-license:
-		license_logo
-
 		.bss
 		.dphrase
 
@@ -382,5 +366,8 @@ a_vdb:      	.ds.w   1
 a_vde:      	.ds.w   1
 width:      	.ds.w   1
 height:     	.ds.w   1
+
+		.phrase
+screenbmp:	.ds.l	BMP_WIDTH*BMP_HEIGHT*(PPP>>1)	
 
 		.end

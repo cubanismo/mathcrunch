@@ -30,11 +30,7 @@ endif
 $(PROGS): $(OBJS)
 	$(LINK) $(LINKFLAGS) -o $@ $(OBJS)
 
-startup.o: lb_box.rgb
 main.o: gpu_68k_shr.h
 gpugame.o: gpu_68k_shr.h
-
-lb_box.rgb: $(JAGSDK)/jaguar/startup/lb_box.rgb
-	cp "$<" "$@"
 
 include $(JAGSDK)/tools/build/jagrules.mk
