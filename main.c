@@ -1,16 +1,18 @@
-#include "jaguar.h"
-#include "gpu_68k_shr.h"
+#include <jaguar.h>
 #if defined(USE_SKUNK)
-#include "skunk.h"
+#include <skunk.h>
 #endif
+
+#include "startup.h"
+#include "gpu_68k_shr.h"
 #include "sprintf.h"
 
-extern volatile unsigned long ticks;
 volatile unsigned long spinCount;
+volatile unsigned long blitCount;
 
 unsigned long count;
 
-void blitToGpu(void *dst, void *src, unsigned long size)
+static void blitToGpu(void *dst, void *src, unsigned long size)
 {
     while ((*B_CMD & 1) == 0);
 
@@ -35,7 +37,7 @@ int start()
 	volatile	long	*pc=(void *)G_PC;
 	volatile	long	*ctrl=(void *)G_CTRL;
 
-    spinCount = 0;
+    spinCount = blitCount = 0;
 
 #if defined(USE_SKUNK)
 	skunkRESET();
@@ -48,7 +50,7 @@ int start()
     blitToGpu(G_RAM, gpugame_start, (long)gpugame_size);
     printf("Done. spinCount = %u\n", spinCount);
 
-    *pc = (unsigned long)&gpu_main;
+    *pc = (unsigned long)&gpu_start;
     *ctrl = GPUGO;
 
     while (1) {
@@ -56,6 +58,6 @@ int start()
 
         while ((ticks - oldTicks) < 60);
 
-        printf("spinCount = %u G_PC = 0x%08lx\n", spinCount, (unsigned long)*pc);
+        printf("spinCount = %u blitCount = %u B_CMD = 0x%08lx G_PC = 0x%08lx\n", spinCount, blitCount, *(volatile long *)B_CMD, (unsigned long)*pc);
     }
 }

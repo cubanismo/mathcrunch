@@ -67,6 +67,7 @@ BMP_HEIGHT  	.equ    240    			; Height in Pixels
 		.globl	gSetOLP
 		.globl	olp2set
 		.globl	_ticks
+		.globl	_screenbmp
 
 		.globl  a_vdb
 		.globl  a_vde
@@ -296,7 +297,7 @@ InitLister:
 		lsl.w   #3,d4
 		or.w    d4,d1                   ; Stuff YPOS in low phrase
 
-		move.l	#screenbmp,d4
+		move.l	#_screenbmp,d4
 		lsl.l	#8,d4
 		or.l	d4,d0
 
@@ -368,6 +369,6 @@ width:      	.ds.w   1
 height:     	.ds.w   1
 
 		.phrase
-screenbmp:	.ds.l	BMP_WIDTH*BMP_HEIGHT*(PPP>>1)	
+_screenbmp:	.ds.l	BMP_WIDTH*BMP_HEIGHT*(PPP>>1)	
 
 		.end
