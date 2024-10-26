@@ -13,13 +13,19 @@ void gpu_start(void)
 
 static void blit_rect(unsigned int color, unsigned int x, unsigned int y, unsigned int width, unsigned int height)
 {
+    unsigned int flags = PITCH1 | PIXEL16 | WID320;
     int stepx = (BMP_PHRASES * 4);
 
     if (width > 0) {
         stepx = width;
-
     } else {
         width = BMP_PHRASES * 4;
+    }
+
+    if ((width & 3) || (x & 3)) {
+        flags |= XADDPIX;
+    } else {
+        flags |= XADDPHR;
     }
 
     if (height == 0) {
@@ -38,8 +44,7 @@ static void blit_rect(unsigned int color, unsigned int x, unsigned int y, unsign
      * Window Width = BMP_WIDTH
      * Blit a phrase at a time
      */
-    *A1_FLAGS = PITCH1|PIXEL16|WID320|XADDPHR;
-    /* *A1_FLAGS = PITCH1|PIXEL16|WID320|XADDPIX; */
+    *A1_FLAGS = flags;
 
     /* Start at <x (low 16 bits), y (high 16 bits)> */
     *A1_PIXEL = x | (y << 16);
@@ -85,29 +90,42 @@ static void gpu_main(void)
         color |= (color << 16);
 
         blit_color(color);
-        blit_rect(0xf0f0f0f0, 40, 40, 240, 5);
-        blit_rect(0xf0f0f0f0, 40, 45, 239, 5);
-        blit_rect(0xf0f0f0f0, 40, 50, 238, 5);
-        blit_rect(0xf0f0f0f0, 40, 55, 237, 5);
-        blit_rect(0xf0f0f0f0, 40, 60, 236, 5);
-        blit_rect(0xf0f0f0f0, 40, 65, 235, 5);
-        blit_rect(0xf0f0f0f0, 40, 70, 234, 5);
-        blit_rect(0xf0f0f0f0, 40, 75, 233, 5);
-        blit_rect(0xf0f0f0f0, 40, 80, 232, 5);
-        blit_rect(0xf0f0f0f0, 40, 85, 231, 5);
-        blit_rect(0xf0f0f0f0, 40, 90, 230, 5);
+        blit_rect(0xff77ff77, 40, 40, 240, 5);
+        blit_rect(0xff77ff77, 40, 45, 239, 5);
+        blit_rect(0xff77ff77, 40, 50, 238, 5);
+        blit_rect(0xff77ff77, 40, 55, 237, 5);
+        blit_rect(0xff77ff77, 40, 60, 236, 5);
+        blit_rect(0xff77ff77, 40, 65, 235, 5);
+        blit_rect(0xff77ff77, 40, 70, 234, 5);
+        blit_rect(0xff77ff77, 40, 75, 233, 5);
+        blit_rect(0xff77ff77, 40, 80, 232, 5);
+        blit_rect(0xff77ff77, 40, 85, 231, 5);
+        blit_rect(0xff77ff77, 40, 90, 230, 5);
 
-        blit_rect(0xf0f0f0f0, 40, 100, 240, 5);
-        blit_rect(0xf0f0f0f0, 40, 105, 236, 5);
-        blit_rect(0xf0f0f0f0, 40, 110, 232, 5);
-        blit_rect(0xf0f0f0f0, 40, 115, 228, 5);
-        blit_rect(0xf0f0f0f0, 40, 120, 224, 5);
-        blit_rect(0xf0f0f0f0, 40, 125, 220, 5);
-        blit_rect(0xf0f0f0f0, 40, 130, 216, 5);
-        blit_rect(0xf0f0f0f0, 40, 135, 212, 5);
-        blit_rect(0xf0f0f0f0, 40, 140, 208, 5);
-        blit_rect(0xf0f0f0f0, 40, 145, 204, 5);
-        blit_rect(0xf0f0f0f0, 40, 150, 200, 5);
+        blit_rect(0xff77ff77, 40, 100, 240, 5);
+        blit_rect(0xff77ff77, 40, 105, 236, 5);
+        blit_rect(0xff77ff77, 40, 110, 232, 5);
+        blit_rect(0xff77ff77, 40, 115, 228, 5);
+        blit_rect(0xff77ff77, 40, 120, 224, 5);
+        blit_rect(0xff77ff77, 40, 125, 220, 5);
+        blit_rect(0xff77ff77, 40, 130, 216, 5);
+        blit_rect(0xff77ff77, 40, 135, 212, 5);
+        blit_rect(0xff77ff77, 40, 140, 208, 5);
+        blit_rect(0xff77ff77, 40, 145, 204, 5);
+        blit_rect(0xff77ff77, 40, 150, 200, 5);
+
+        blit_rect(0xff77ff77, 40, 160, 240, 5);
+        blit_rect(0xff77ff77, 41, 165, 238, 5);
+        blit_rect(0xff77ff77, 42, 170, 236, 5);
+        blit_rect(0xff77ff77, 43, 175, 234, 5);
+        blit_rect(0xff77ff77, 44, 180, 232, 5);
+        blit_rect(0xff77ff77, 45, 185, 230, 5);
+        blit_rect(0xff77ff77, 46, 190, 228, 5);
+        blit_rect(0xff77ff77, 47, 195, 226, 5);
+        blit_rect(0xff77ff77, 48, 200, 224, 5);
+        blit_rect(0xff77ff77, 49, 205, 222, 5);
+        blit_rect(0xff77ff77, 50, 210, 220, 5);
+
         spinCount += 1;
     }
 }
