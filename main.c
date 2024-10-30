@@ -1,6 +1,8 @@
 #include <jaguar.h>
 #if defined(USE_SKUNK)
 #include <skunk.h>
+#elif defined(USE_GD)
+#include "gdbios.h"
 #endif
 
 #include "startup.h"
@@ -13,6 +15,10 @@ volatile unsigned long spinCount;
 volatile unsigned long blitCount;
 
 unsigned long count;
+
+#if defined(USE_GD)
+static u8 GD_Bios[1024 * 4];
+#endif
 
 static void blitToGpu(void *dst, void *src, unsigned long size)
 {
@@ -46,6 +52,8 @@ int start()
 	skunkRESET();
 	skunkNOP();
 	skunkNOP();
+#elif defined(USE_GD)
+    GD_Install(GD_Bios);
 #endif
 
     printf("Running blit to GPU\n");

@@ -254,7 +254,11 @@ InitU235se:
 .palsound:
 		jsr	U235SE_initPAL
 
-.soundidone:	move.l	#U235SE_24KHZ, U235SE_playback_rate
+.soundidone:
+		; u235se tries to set this, but at the wrong location I think
+		move.l	#$11c00075, JPIT3
+
+		move.l	#U235SE_24KHZ, U235SE_playback_rate
 		move.l	#U235SE_24KHZ_PERIOD, U235SE_playback_period
 		move.w	#$100, JOYSTICK
 		move.l	#D_RAM, D_PC

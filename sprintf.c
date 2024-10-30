@@ -4,6 +4,10 @@
 #include "skunk.h"
 #endif
 
+#if defined(USE_GD)
+#include "gdbios.h"
+#endif
+
 #define isdigit(c) ((c)>='0' && (c)<='9')
 
 /*
@@ -175,7 +179,7 @@ sprintf(char *buf, const char *fmt, ...)
 	return foo;
 }
 
-#if defined(USE_SKUNK)
+#if defined(USE_SKUNK) || defined(USE_GD)
 /* Not thread safe at all */
 static char pfbuf[SPRINTF_MAX+1]; 
 
@@ -188,7 +192,11 @@ int printf(const char *fmt, ...)
 	foo = vsprintf(pfbuf, fmt, args);	
 	va_end(args);
 
+#if defined(USE_SKUNK)
 	skunkCONSOLEWRITE(pfbuf);
+#else /* defined(USE_GD) */
+	GD_DebugString(pfbuf);
+#endif
 
 	return foo;
 }

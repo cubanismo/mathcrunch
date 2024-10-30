@@ -7,7 +7,7 @@
 
 extern int vsprintf(char *buf, const char *fmt, va_list args);
 extern int sprintf(char *str, const char *fmt, ...);
-#if defined(USE_SKUNK)
+#if defined(USE_SKUNK) || defined(USE_GD)
 extern int printf(const char *fmt, ...);
 extern int puts(const char *str);
 #else

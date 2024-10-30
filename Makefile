@@ -3,6 +3,7 @@ include $(JAGSDK)/tools/build/jagdefs.mk
 # Change this to 0 to build without the skunk console dependency.
 # Things like printf won't work.
 SKUNKLIB := 1
+GDLIB := 0
 
 OBJS=startup.o main.o u235sec.o $(CGPUOBJS) music.o
 
@@ -11,6 +12,12 @@ CGPUOBJS=gpugame.o
 ifeq ($(SKUNKLIB),1)
 	OBJS += skunkc.o skunk.o
 	OBJS += sprintf.o util.o
+endif
+
+ifeq ($(GDLIB),1)
+	OBJS += gdbios_bindings.o
+	OBJS += sprintf.o util.o
+	CFLAGS += -DUSE_GD=1
 endif
 
 # Additional M68K CFLAGS
