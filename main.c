@@ -5,6 +5,8 @@
 
 #include "startup.h"
 #include "gpu_68k_shr.h"
+#include "music.h"
+#include "u235se.h"
 #include "sprintf.h"
 
 volatile unsigned long spinCount;
@@ -36,6 +38,8 @@ int start()
 {
 	volatile	long	*pc=(void *)G_PC;
 	volatile	long	*ctrl=(void *)G_CTRL;
+    long unsigned musicAddr;
+    int newMusic = 0;
 
     spinCount = blitCount = 0;
 
@@ -53,11 +57,25 @@ int start()
     *pc = (unsigned long)&gpu_start;
     *ctrl = GPUGO;
 
+    musicAddr = ChangeMusic(mus_title);
+    printf("Starting music at 0x%08x\n", musicAddr);
+
     while (1) {
         unsigned long oldTicks = ticks;
 
         while ((ticks - oldTicks) < 60);
 
         printf("spinCount = %u blitCount = %u B_CMD = 0x%08lx G_PC = 0x%08lx\n", spinCount, blitCount, *(volatile long *)B_CMD, (unsigned long)*pc);
+
+        if (*u235se_pad1 & U235SE_BUT_B) {
+            if (!newMusic) {
+                musicAddr = ChangeMusic(mus_main);
+                newMusic = 1;
+            } else {
+                musicAddr = ChangeMusic(mus_title);
+                newMusic = 0;
+            }
+            printf("Starting music at 0x%08x\n", musicAddr);
+        }
     }
 }

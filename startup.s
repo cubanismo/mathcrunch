@@ -50,6 +50,7 @@
 ;-----------------------------------------------------------------------------
 
 	.include    "jaguar.inc"
+	.include    "u235se/u235se.inc"
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Begin STARTUP PICTURE CONFIGURATION -- Edit this to change startup picture
@@ -75,8 +76,11 @@ BMP_HEIGHT  	.equ    240    			; Height in Pixels
 		.globl  a_hde
 		.globl  width
 		.globl  height
+		.globl	_ChangeMusic
 ; Externals
 		.extern	_start
+		.extern _mus_title
+		.extern _mus_main
 
 BMP_PHRASES 	.equ    (BMP_WIDTH/PPP) 	; Width in Phrases
 BMP_LINES   	.equ    (BMP_HEIGHT*2)  	; Height in Half Scanlines
@@ -96,6 +100,7 @@ LISTSIZE    	.equ    5       		; List length (in phrases)
 		jsr 	InitVideo      		; Setup our video registers.
 		jsr 	InitLister     		; Initialize Object Display List
 		jsr 	InitVBint      		; Initialize our VBLANK routine
+		jsr	InitU235se		; Initialize the sound engine
 
 ;;; Sneaky trick to cause display to popup at first VB
 
@@ -233,6 +238,56 @@ calc_vals:
 		rts
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; InitU235: Initialize the U235 sound engine
+;
+; Registers:	d0 and a0 are clobbered
+;
+InitU235se:
+		movem.l	d0/a0,-(sp)
+		move.w  CONFIG, d0
+		andi.w  #VIDTYPE, d0
+		beq 	.palsound
+
+		jsr	U235SE_initNTSC
+		bra	.soundidone
+
+.palsound:
+		jsr	U235SE_initPAL
+
+.soundidone:	move.l	#U235SE_24KHZ, U235SE_playback_rate
+		move.l	#U235SE_24KHZ_PERIOD, U235SE_playback_period
+		move.w	#$100, JOYSTICK
+		move.l	#D_RAM, D_PC
+		move.l	#RISCGO, D_CTRL
+
+		movem.l	(sp)+,d0/a0
+		rts
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; ChangeMusic(void *modFilePtr)
+;
+; C-callable function to change the mod file u235se is playing
+;
+_ChangeMusic:
+		movem.l	a0,-(sp)
+
+		move.l	#U235SE_NOMOD, U235SE_playmod
+		move.l	#stopmuscmds, U235SE_sfxplaylist_ptr
+
+		move.l	8(sp), a0
+		cmp.l	#0, a0
+		beq	.donechg
+
+		jsr	U235SE_modinit
+		move.l	#48, U235SE_music_vol	; Set volume to 48/63
+		move.l	#U235SE_PLAYMONO, U235SE_playmod
+
+.donechg:
+		move.l	a0, d0
+		movem.l	(sp)+,a0
+		rts
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; InitLister: Initialize Object List Processor List
 ;
 ;    Returns: Pre-word-swapped address of current object list in d0.l
@@ -355,6 +410,15 @@ UpdateList:
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+		.data
+		.long
+
+stopmuscmds:	.dc.l	$01
+		.dc.l	$11
+		.dc.l	$21
+		.dc.l	$31
+		.dc.l	$0
+
 		.bss
 		.dphrase
 
@@ -369,6 +433,6 @@ width:      	.ds.w   1
 height:     	.ds.w   1
 
 		.phrase
-_screenbmp:	.ds.l	BMP_WIDTH*BMP_HEIGHT*(PPP>>1)	
+_screenbmp:	.ds.l	BMP_WIDTH*BMP_HEIGHT*(PPP>>1)
 
 		.end

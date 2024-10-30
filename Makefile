@@ -4,8 +4,9 @@ include $(JAGSDK)/tools/build/jagdefs.mk
 # Things like printf won't work.
 SKUNKLIB := 1
 
+OBJS=startup.o main.o u235sec.o $(CGPUOBJS) music.o
+
 CGPUOBJS=gpugame.o
-OBJS=startup.o main.o $(CGPUOBJS)
 
 ifeq ($(SKUNKLIB),1)
 	OBJS += skunkc.o skunk.o
@@ -27,10 +28,14 @@ skunkc.o: $(SKUNKDIR)/lib/skunkc.s
 	$(ASM) $(ASMFLAGS) -o $@ $<
 endif
 
-$(PROGS): $(OBJS)
-	$(LINK) $(LINKFLAGS) -o $@ $(OBJS)
+# Include some objects we don't want to clean here too
+ALLOBJS = $(OBJS) u235se/dsp.obj
 
-main.o: gpu_68k_shr.h
+$(PROGS): $(ALLOBJS)
+	$(LINK) $(LINKFLAGS) -o $@ $^
+
+music.o: *.mod
+main.o: gpu_68k_shr.h u235se.h startup.h sprintf.h music.h
 gpugame.o: gpu_68k_shr.h
 
 include $(JAGSDK)/tools/build/jagrules.mk

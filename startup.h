@@ -11,4 +11,6 @@ extern unsigned char screenbmp[];
 #define BMP_PHRASES (BMP_WIDTH/PPP)
 #define BMP_LINES (BMP_HEIGHT*2)
 
+extern long unsigned ChangeMusic(void *modFilePtr);
+
 #endif /* STARTUP_H_ */
