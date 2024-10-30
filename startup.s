@@ -79,8 +79,8 @@ BMP_HEIGHT  	.equ    240    			; Height in Pixels
 		.globl	_ChangeMusic
 ; Externals
 		.extern	_start
-		.extern _mus_title
-		.extern _mus_main
+		.extern _cpuCmd;
+		.extern _cpuData;
 
 BMP_PHRASES 	.equ    (BMP_WIDTH/PPP) 	; Width in Phrases
 BMP_LINES   	.equ    (BMP_HEIGHT*2)  	; Height in Half Scanlines
@@ -99,7 +99,7 @@ LISTSIZE    	.equ    5       		; List length (in phrases)
 			
 		jsr 	InitVideo      		; Setup our video registers.
 		jsr 	InitLister     		; Initialize Object Display List
-		jsr 	InitVBint      		; Initialize our VBLANK routine
+		jsr 	InitInt      		; Initialize our VBLANK routine
 		jsr	InitU235se		; Initialize the sound engine
 
 ;;; Sneaky trick to cause display to popup at first VB
@@ -153,20 +153,20 @@ olp2set:    	.ds.l   1           		; GPU Code Parameter
 		.text
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-; Procedure: InitVBint
-; Install our vertical blank handler and enable interrupts
+; Procedure: InitInt
+; Install our vertical blank and GPU interrupt handlers and enable interrupts
 ;
 
-InitVBint:
+InitInt:
 		move.l  d0,-(sp)
 
-		move.l  #UpdateList,LEVEL0	; Install 68K LEVEL0 handler
+		move.l  #HandleInt,LEVEL0	; Install 68K LEVEL0 handler
 
 		move.w  a_vde,d0        	; Must be ODD
 		ori.w   #1,d0
 		move.w  d0,VI
 
-		move.w  #C_VIDENA,INT1         	; Enable video interrupts
+		move.w  #C_VIDENA|C_GPUENA,INT1	; Enable video and GPU interrupts
 
 		move.w  sr,d0
 		and.w   #$F8FF,d0       	; Lower 68k IPL to allow
@@ -388,6 +388,46 @@ InitLister:
 		rts
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; Procedure: HandleInt
+;        Handle LEVEL0 Interrupt by dispatching to sub-handlers.
+HandleInt:
+		move.l	d0, -(sp)
+		move.w	INT1, d0
+
+		btst.l	#0, d0
+		beq	.novid
+		jsr	UpdateList
+
+.novid:
+		btst.l	#1, d0
+		beq	.nogpu
+		jsr	HandleGpu
+
+.nogpu:
+		move.w  #(C_VIDCLR|C_GPUCLR|C_VIDENA|C_GPUENA), INT1 ; Signal we're done
+		move.w  #$0, INT2 ; Restore normal bus priorities
+
+		move.l	(sp)+, d0
+		rte
+
+HandleGpu:
+		movem.l	d0-d1, -(sp)
+
+		move.l	_cpuCmd, d0
+		move.l	_cpuData, d1
+
+		cmp.l	#1, d0			; CPUCMD_CHANGE_MUSIC
+		bne.s	.nomus
+		move.l	d1, -(sp)
+		jsr	_ChangeMusic
+		addq.l	#4, sp
+
+.nomus:
+		move.l	#0, _cpuCmd
+		movem.l	(sp)+, d0-d1
+		rts
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Procedure: UpdateList
 ;        Handle Video Interrupt and update object list fields
 ;        destroyed by the object processor.
@@ -402,11 +442,8 @@ UpdateList:
 
 		add.l	#1,_ticks		; Increment ticks semaphore
 
-		move.w  #$101,INT1      	; Signal we're done
-		move.w  #$0,INT2
-
 		move.l  (sp)+,a0
-		rte
+		rts
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 

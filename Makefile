@@ -36,6 +36,6 @@ $(PROGS): $(ALLOBJS)
 
 music.o: *.mod
 main.o: gpu_68k_shr.h u235se.h startup.h sprintf.h music.h
-gpugame.o: gpu_68k_shr.h
+gpugame.o: gpu_68k_shr.h startup.h music.h u235se.h
 
 include $(JAGSDK)/tools/build/jagrules.mk

@@ -1,6 +1,16 @@
 #ifndef GPU_68K_SHR_H_
 #define GPU_68K_SHR_H_
 
+enum CpuCommands {
+    CPUCMD_IDLE = 0,
+    CPUCMD_CHANGE_MUSIC,
+
+    CPUCMD_INVALID = 0xFFFFFFFF
+};
+
+extern volatile unsigned long cpuCmd;
+extern volatile void *cpuData;
+
 extern volatile unsigned long spinCount;
 extern volatile unsigned long blitCount;
 extern unsigned long gpugame_start[];

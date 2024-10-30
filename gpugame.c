@@ -2,12 +2,21 @@
 
 #include "gpu_68k_shr.h"
 #include "startup.h"
+#include "u235se.h"
+#include "music.h"
+
+volatile unsigned long cpuCmd;
+volatile void *cpuData;
 
 static void gpu_main(void);
 
 /* This has to be the first function, since gcc sets up the stack in the first function */
 void gpu_start(void)
 {
+    /* Stuff that the C startup code would normally do */
+    cpuCmd = CPUCMD_IDLE;
+    cpuData = 0;
+
     gpu_main();
 }
 
@@ -76,11 +85,28 @@ static void blit_color(unsigned int color)
     blit_rect(color, 0, 0, 0, 0);
 }
 
+static void ChangeMusicGPU(void *music)
+{
+    static volatile long *gctrl = G_CTRL;
+
+    /* Store the command in cpuCmd */
+    cpuCmd = CPUCMD_CHANGE_MUSIC;
+    cpuData = music;
+
+    /* Interrupt the 68k */
+    *gctrl = GPUGO | 0x2;
+
+    while (cpuCmd != 0);
+}
+
 static void gpu_main(void)
 {
     unsigned int i;
     unsigned int oldTicks = ticks;
     unsigned int color;
+    unsigned int oldPad1 = 0;
+    unsigned int newPad1;
+    int newMusic = 0;
 
     while (1) {
         while (oldTicks == ticks);
@@ -127,5 +153,19 @@ static void gpu_main(void)
         blit_rect(0xff77ff77, 50, 210, 220, 5);
 
         spinCount += 1;
+
+        newPad1 = *u235se_pad1;
+
+        if (((oldPad1 ^ newPad1) & newPad1) & U235SE_BUT_B) {
+            if (!newMusic) {
+                ChangeMusicGPU(mus_main);
+                newMusic = 1;
+            } else {
+                ChangeMusicGPU(mus_title);
+                newMusic = 0;
+            }
+        }
+
+        oldPad1 = *u235se_pad1;
     }
 }
