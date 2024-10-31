@@ -3,6 +3,8 @@
 
 extern volatile unsigned long ticks;
 extern unsigned char screenbmp[];
+extern char gpuStr[];
+extern char dspStr[];
 
 /* XXX Should be shared with startup.s */
 #define PPP 4

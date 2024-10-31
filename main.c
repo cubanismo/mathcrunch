@@ -42,9 +42,11 @@ static void blitToGpu(void *dst, void *src, unsigned long size)
 
 void printStats(void)
 {
-    printf("spinCount = %u blitCount = %u B_CMD = 0x%08lx G_PC = 0x%08lx G_FLAGS = 0x%08lx G_CTRL = 0x%08lx D_PC = 0x%08lx D_FLAGS = 0x%08lx D_CTRL = 0x%08lx\n",
-           spinCount, blitCount, *(volatile long *)B_CMD, *(volatile long *)G_PC, *(volatile long *)G_FLAGS, *(volatile long *)G_CTRL,
-           *(volatile long *)D_PC, *(volatile long *)D_FLAGS, *(volatile long *)D_CTRL);
+    sprintf(gpuStr, "GPU $%08lx $%08lx $%08lx",
+            *(volatile long *)G_PC, *(volatile long *)G_FLAGS, *(volatile long *)G_CTRL);
+    sprintf(dspStr, "DSP $%08lx $%08lx $%08lx",
+            *(volatile long *)D_PC, *(volatile long *)D_FLAGS, *(volatile long *)D_CTRL);
+    printf("%s\n%s\n", gpuStr, dspStr);
 }
 
 int start()
@@ -54,6 +56,15 @@ int start()
     long unsigned musicAddr;
 
     spinCount = blitCount = 0;
+    gpuStr[0] = 'G';
+    gpuStr[1] = 'P';
+    gpuStr[2] = 'U';
+    gpuStr[3] = '\0';
+
+    dspStr[0] = 'D';
+    dspStr[1] = 'S';
+    dspStr[2] = 'P';
+    dspStr[3] = '\0';
 
 #if defined(USE_SKUNK)
 	skunkRESET();
@@ -66,6 +77,7 @@ int start()
     printf("Running blit to GPU\n");
 
     blitToGpu(G_RAM, gpugame_start, (long)gpugame_size);
+    blitToGpu((unsigned char *)G_RAM + 0x800, gputext_start, (long)gputext_size);
     printf("Done. spinCount = %u\n", spinCount);
 
     *pc = (unsigned long)&gpu_start;

@@ -78,6 +78,8 @@ BMP_HEIGHT  	.equ    240    			; Height in Pixels
 		.globl  height
 		.globl	_ChangeMusic
 		.globl	_stop68k
+		.globl	_gpuStr
+		.globl	_dspStr
 ; Externals
 		.extern	_start
 		.extern _printStats
@@ -505,6 +507,10 @@ a_vdb:      	.ds.w   1
 a_vde:      	.ds.w   1
 width:      	.ds.w   1
 height:     	.ds.w   1
+
+		.long
+_gpuStr:	.ds.b	128
+_dspStr:	.ds.b	128
 
 		.phrase
 _screenbmp:	.ds.l	BMP_WIDTH*BMP_HEIGHT*(PPP>>1)

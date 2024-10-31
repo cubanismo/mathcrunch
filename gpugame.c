@@ -5,6 +5,8 @@
 #include "u235se.h"
 #include "music.h"
 
+extern drawString(void *surfaddr, unsigned long coords, void *str);
+
 volatile unsigned long cpuCmd;
 void *volatile cpuData;
 
@@ -114,7 +116,7 @@ static void gpu_main(void)
     int newMusic = 0;
 
     while (1) {
-        while (oldTicks == ticks);
+        while ((oldTicks + 1) >= ticks);
         oldTicks = ticks;
 
         color = (oldTicks & 0xffff);
@@ -157,6 +159,12 @@ static void gpu_main(void)
         blit_rect(0xff77ff77, 49, 205, 222, 5);
         blit_rect(0xff77ff77, 50, 210, 220, 5);
 
+        /* Wait for blitter to idle */
+        while ((*(volatile long *)B_CMD & 1) == 0);
+
+        drawString(screenbmp, (10 << 16) | 20, gpuStr);
+        drawString(screenbmp, (20 << 16) | 20, dspStr);
+
         spinCount += 1;
 
         newPad1 = *u235se_pad1;
@@ -173,7 +181,7 @@ static void gpu_main(void)
 
         oldPad1 = *u235se_pad1;
 
-        if (++printDelay >= 60) {
+        if (++printDelay >= 30) {
             printDelay = 0;
             cpuCmd = CPUCMD_PRINT_STATS;
             run68kCmd();

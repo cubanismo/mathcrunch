@@ -5,18 +5,16 @@ include $(JAGSDK)/tools/build/jagdefs.mk
 SKUNKLIB := 1
 GDLIB := 0
 
-OBJS=startup.o main.o u235sec.o $(CGPUOBJS) music.o
+OBJS=startup.o main.o u235sec.o sprintf.o util.o $(CGPUOBJS) music.o gputext.o
 
 CGPUOBJS=gpugame.o
 
 ifeq ($(SKUNKLIB),1)
 	OBJS += skunkc.o skunk.o
-	OBJS += sprintf.o util.o
 endif
 
 ifeq ($(GDLIB),1)
 	OBJS += gdbios_bindings.o
-	OBJS += sprintf.o util.o
 	CFLAGS += -DUSE_GD=1
 endif
 
@@ -44,5 +42,8 @@ $(PROGS): $(ALLOBJS)
 music.o: *.mod
 main.o: gpu_68k_shr.h u235se.h startup.h sprintf.h music.h
 gpugame.o: gpu_68k_shr.h startup.h music.h u235se.h
+
+gpugame.s: gpugame.c
+	gcc263 -DJAGUAR -DUSE_SKUNK -I/home/jjones/Documents/Projects/jaguar-sdk/jaguar/include -I/home/jjones/Documents/Projects/jaguar-sdk/jaguar/skunk/include -b agpu -O2 -fomit-frame-pointer -v -fno-builtin -S gpugame.c
 
 include $(JAGSDK)/tools/build/jagrules.mk
