@@ -24,6 +24,9 @@ static void blitToGpu(void *dst, void *src, unsigned long size)
 {
     while ((*B_CMD & 1) == 0);
 
+    /* Use 32-bit version of GPU memory */
+    dst = (unsigned char *)dst + 0x8000;
+
     *A1_CLIP = 0; // Don't clip blitter writes
     *A1_BASE = (unsigned long)dst;
     *A2_BASE = (unsigned long)src;
