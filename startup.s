@@ -244,19 +244,14 @@ calc_vals:
 ;
 InitU235se:
 		movem.l	d0/a0,-(sp)
-		move.w  CONFIG, d0
-		andi.w  #VIDTYPE, d0
-		beq 	.palsound
 
-		jsr	U235SE_initNTSC
-		bra	.soundidone
+.extern dspcode
+		move.w	#2047, d0
+		lea	dspcode, a0
+		move.l	#D_RAM, a1
 
-.palsound:
-		jsr	U235SE_initPAL
-
-.soundidone:
-		; u235se tries to set this, but at the wrong location I think
-		move.l	#$11c00075, JPIT3
+.sndloadloop:	move.l	(a0)+, (a1)+
+		dbra.w	d0, .sndloadloop
 
 		move.l	#U235SE_24KHZ, U235SE_playback_rate
 		move.l	#U235SE_24KHZ_PERIOD, U235SE_playback_period
@@ -277,17 +272,21 @@ _ChangeMusic:
 
 		move.l	#U235SE_NOMOD, U235SE_playmod
 		move.l	#stopmuscmds, U235SE_sfxplaylist_ptr
+.waitsilence:
+		tst.l	U235SE_sfxplaylist_ptr
+		bne	.waitsilence
 
-		move.l	8(sp), a0
-		cmp.l	#0, a0
+		move.l	8(sp), U235SE_moduleaddr
+		tst.l	U235SE_moduleaddr
 		beq	.donechg
 
-		jsr	U235SE_modinit
+		;jsr	U235SE_modinit
+		jsr	modinit
 		move.l	#48, U235SE_music_vol	; Set volume to 48/63
 		move.l	#U235SE_PLAYMONO, U235SE_playmod
 
 .donechg:
-		move.l	a0, d0
+		move.l	U235SE_moduleaddr, d0
 		movem.l	(sp)+,a0
 		rts
 
