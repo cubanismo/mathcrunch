@@ -77,8 +77,10 @@ BMP_HEIGHT  	.equ    240    			; Height in Pixels
 		.globl  width
 		.globl  height
 		.globl	_ChangeMusic
+		.globl	_stop68k
 ; Externals
 		.extern	_start
+		.extern _printStats
 		.extern _cpuCmd;
 		.extern _cpuData;
 
@@ -90,7 +92,6 @@ LISTSIZE    	.equ    5       		; List length (in phrases)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; Program Entry Point Follows...
 
 		.text
-
 		move.l  #$70007,G_END		; big-endian mode
 		move.l  #$70007,D_END
 		move.w  #$FFFF,VI       	; disable video interrupts
@@ -243,7 +244,7 @@ calc_vals:
 ; Registers:	d0 and a0 are clobbered
 ;
 InitU235se:
-		movem.l	d0/a0,-(sp)
+		movem.l	d0/a0-a1,-(sp)
 
 .extern dspcode
 		move.w	#2047, d0
@@ -255,11 +256,11 @@ InitU235se:
 
 		move.l	#U235SE_24KHZ, U235SE_playback_rate
 		move.l	#U235SE_24KHZ_PERIOD, U235SE_playback_period
-		move.w	#$100, JOYSTICK
 		move.l	#D_RAM, D_PC
 		move.l	#RISCGO, D_CTRL
+		move.w	#$100, JOYSTICK
 
-		movem.l	(sp)+,d0/a0
+		movem.l	(sp)+,d0/a0-a1
 		rts
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -402,30 +403,55 @@ HandleInt:
 		jsr	UpdateList
 
 .novid:
-		btst.l	#1, d0
-		beq	.nogpu
-		jsr	HandleGpu
-
-.nogpu:
-		move.w  #(C_VIDCLR|C_GPUCLR|C_VIDENA|C_GPUENA), INT1 ; Signal we're done
+		; Signal we're done processing all received interrupts
+		lsl.w	#8, d0		; Only clear interrupts received
+		or.w	#(C_VIDENA|C_GPUENA), d0
+		move.w	d0, INT1
 		move.w  #$0, INT2 ; Restore normal bus priorities
 
 		move.l	(sp)+, d0
 		rte
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; Macro: HANDLE_CPUCMD
+;
+;       Macro to help dispatch the 68k commands from the GPU
+;
+; Params:
+;   cmdNum:   The number of the command. Should be one of the valid
+;             CPUCMD_* enum values
+;   func:     The function to call for this command
+;   regParam: If the function takes a parameter, set this to d1
+;
+.macro HANDLE_CPUCMD cmdNum, func, regParam
+		cmp.l	#\cmdNum, d0
+		bne.s	.no\~
+		movem.l	d0-d1/a0-a1, -(sp)
+.if \# > 2
+		move.l	\regParam, -(sp)
+.endif
+		jsr	\func
+.if \# > 2
+		addq.l	#4, sp
+.endif
+		movem.l	(sp)+, d0-d1/a0-a1
+.no\~:
+.endm
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; Procedure: HandleGpu
+;
+;      Dispatch a command from the the GPU on the 68k
+;
 HandleGpu:
 		movem.l	d0-d1, -(sp)
 
 		move.l	_cpuCmd, d0
 		move.l	_cpuData, d1
 
-		cmp.l	#1, d0			; CPUCMD_CHANGE_MUSIC
-		bne.s	.nomus
-		move.l	d1, -(sp)
-		jsr	_ChangeMusic
-		addq.l	#4, sp
+		HANDLE_CPUCMD 1, _printStats
+		HANDLE_CPUCMD 2, _ChangeMusic, d1
 
-.nomus:
 		move.l	#0, _cpuCmd
 		movem.l	(sp)+, d0-d1
 		rts
@@ -446,6 +472,14 @@ UpdateList:
 		add.l	#1,_ticks		; Increment ticks semaphore
 
 		move.l  (sp)+,a0
+		rts
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; Procedure: _stop68k
+;        Halt the 68k
+_stop68k:
+		stop	#$2000
+		jsr	HandleGpu
 		rts
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

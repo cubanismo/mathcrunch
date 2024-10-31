@@ -12,5 +12,7 @@ extern unsigned char screenbmp[];
 #define BMP_LINES (BMP_HEIGHT*2)
 
 extern long unsigned ChangeMusic(void *modFilePtr);
+extern void printStats(void);
+extern void stop68k(void);
 
 #endif /* STARTUP_H_ */

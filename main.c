@@ -40,6 +40,13 @@ static void blitToGpu(void *dst, void *src, unsigned long size)
     while ((*B_CMD & 1) == 0);
 }
 
+void printStats(void)
+{
+    printf("spinCount = %u blitCount = %u B_CMD = 0x%08lx G_PC = 0x%08lx G_FLAGS = 0x%08lx G_CTRL = 0x%08lx D_PC = 0x%08lx D_FLAGS = 0x%08lx D_CTRL = 0x%08lx\n",
+           spinCount, blitCount, *(volatile long *)B_CMD, *(volatile long *)G_PC, *(volatile long *)G_FLAGS, *(volatile long *)G_CTRL,
+           *(volatile long *)D_PC, *(volatile long *)D_FLAGS, *(volatile long *)D_CTRL);
+}
+
 int start()
 {
 	volatile	long	*pc=(void *)G_PC;
@@ -68,10 +75,6 @@ int start()
     printf("Starting music at 0x%08x\n", musicAddr);
 
     while (1) {
-        unsigned long oldTicks = ticks;
-
-        while ((ticks - oldTicks) < 60);
-
-        printf("spinCount = %u blitCount = %u B_CMD = 0x%08lx G_PC = 0x%08lx\n", spinCount, blitCount, *(volatile long *)B_CMD, (unsigned long)*pc);
+        stop68k();
     }
 }

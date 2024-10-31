@@ -3,13 +3,14 @@
 
 enum CpuCommands {
     CPUCMD_IDLE = 0,
+    CPUCMD_PRINT_STATS,
     CPUCMD_CHANGE_MUSIC,
 
     CPUCMD_INVALID = 0xFFFFFFFF
 };
 
 extern volatile unsigned long cpuCmd;
-extern volatile void *cpuData;
+extern void *volatile cpuData;
 
 extern volatile unsigned long spinCount;
 extern volatile unsigned long blitCount;

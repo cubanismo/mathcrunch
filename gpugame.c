@@ -6,7 +6,7 @@
 #include "music.h"
 
 volatile unsigned long cpuCmd;
-volatile void *cpuData;
+void *volatile cpuData;
 
 static void gpu_main(void);
 
@@ -85,18 +85,22 @@ static void blit_color(unsigned int color)
     blit_rect(color, 0, 0, 0, 0);
 }
 
-static void ChangeMusicGPU(void *music)
+static void run68kCmd(void)
 {
     static volatile long *gctrl = G_CTRL;
-
-    /* Store the command in cpuCmd */
-    cpuCmd = CPUCMD_CHANGE_MUSIC;
-    cpuData = music;
 
     /* Interrupt the 68k */
     *gctrl = GPUGO | 0x2;
 
     while (cpuCmd != 0);
+}
+
+static void ChangeMusicGPU(void *music)
+{
+    cpuData = music;
+    cpuCmd = CPUCMD_CHANGE_MUSIC;
+
+    run68kCmd();
 }
 
 static void gpu_main(void)
@@ -106,6 +110,7 @@ static void gpu_main(void)
     unsigned int color;
     unsigned int oldPad1 = 0;
     unsigned int newPad1;
+    unsigned int printDelay = 0;
     int newMusic = 0;
 
     while (1) {
@@ -167,5 +172,11 @@ static void gpu_main(void)
         }
 
         oldPad1 = *u235se_pad1;
+
+        if (++printDelay >= 60) {
+            printDelay = 0;
+            cpuCmd = CPUCMD_PRINT_STATS;
+            run68kCmd();
+        }
     }
 }
