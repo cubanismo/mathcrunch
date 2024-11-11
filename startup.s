@@ -80,6 +80,7 @@ BMP_HEIGHT  	.equ    240    			; Height in Pixels
 		.globl	_stop68k
 		.globl	_gpuStr
 		.globl	_dspStr
+		.globl	_spriteData
 ; Externals
 		.extern	_start
 		.extern _printStats
@@ -294,6 +295,10 @@ _ChangeMusic:
 		movem.l	(sp)+,d1-d7/a0-a6
 		rts
 
+SetSpriteList:
+		move.l	d1, spriteList
+		rts
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; InitLister: Initialize Object List Processor List
 ;
@@ -306,6 +311,8 @@ _ChangeMusic:
 		
 InitLister:
 		movem.l d1-d4/a0,-(sp)		; Save registers
+
+		move.l	#0, spriteList		; Turn off the sprite list
 			
 		lea     listbuf,a0
 		move.l  a0,d2           	; Copy
@@ -424,7 +431,7 @@ HandleInt:
 ;   cmdNum:   The number of the command. Should be one of the valid
 ;             CPUCMD_* enum values
 ;   func:     The function to call for this command
-;   regParam: If the function takes a parameter, set this to d1
+;   regParam: If the function takes a stack parameter, set this to d1
 ;
 .macro HANDLE_CPUCMD cmdNum, func, regParam
 		cmp.l	#\cmdNum, d0
@@ -454,8 +461,57 @@ HandleGpu:
 
 		HANDLE_CPUCMD 1, _printStats
 		HANDLE_CPUCMD 2, _ChangeMusic, d1
+		HANDLE_CPUCMD 3, SetSpriteList
 
 		movem.l	(sp)+, d0-d1/a0-a1
+		rts
+
+
+WalkSpriteList:
+		movem.l	d0-d3, -(sp)
+
+.spriteLoop:
+		move.l	#listbuf+((LISTSIZE-1)*8), d2	; Assume this is last bitmap
+
+		move.l	(a0), d1
+		tst.l	d1			; If next is NULL the assumption
+		beq.s	.doLink			; was correct.
+
+		move.l	a1, d2			; Otherwise, link to next bitmap object
+		add.l	#$10, d2
+
+.doLink:
+		move.l	d2, d3			; Copy for lower half
+		lsr.l	#8, d2			; Shift high half into place
+		lsr.l	#3, d2
+
+		swap	d3			; Place low half correctly
+		clr.w	d3
+		lsl.l	#5, d3
+
+		; Build the first phrase
+		move.l	8(a0), d0		; d0 = phrase 1 high dword
+		or.l	d2, d0			; Add in link
+		move.l	d0, (a1)+		; Store phrase 1 high dword
+
+		move.l	4(a0), d0		; d0 = phrase 1 low dword
+		or.l	24(a0), d0		; Add y position
+		or.l	d3, d0			; Add in link
+		move.l	d0, (a1)+		; Store phrase 1 low dword
+
+		move.l	16(a0), (a1)+		; Store phrase 2 high dword
+
+		move.l	12(a0), d0		; d0 = phrase 2 low dword
+		or.l	20(a0), d0		; Add in x position
+		move.l	d0, (a1)+		; Store phrase 2 low dword
+
+		; XXX Handle double-buffering of start address.
+
+		movea.l	d1, a0
+		tst.l	d1			; If there is a next sprite,
+		bne	.spriteLoop		; Loop.
+
+		movem.l	(sp)+,d0-d3
 		rts
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -466,11 +522,23 @@ HandleGpu:
 UpdateList:
 		move.l  a0,-(sp)
 
+		tst.l	spriteList
+		beq.s	.emptyList
+
+		move.l	a1,-(sp)
+		move.l	spriteList, a0
+		move.l	#listbuf+BITMAP_OFF, a1
+		jsr	WalkSpriteList
+		move.l	(sp)+,a1
+
+		bra.s	.doneUpdating
+.emptyList:
 		move.l  #listbuf+BITMAP_OFF,a0
 
 		move.l  bmpupdate,(a0)      	; Phrase = d1.l/d0.l
 		move.l  bmpupdate+4,4(a0)
 
+.doneUpdating:
 		add.l	#1,_ticks		; Increment ticks semaphore
 
 		move.l  (sp)+,a0
@@ -509,6 +577,8 @@ width:      	.ds.w   1
 height:     	.ds.w   1
 
 		.long
+spriteList:	.ds.l	1
+_spriteData:	.ds.l	32*2
 _gpuStr:	.ds.b	128
 _dspStr:	.ds.b	128
 

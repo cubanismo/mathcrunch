@@ -41,7 +41,7 @@ $(PROGS): $(ALLOBJS)
 
 music.o: *.mod
 main.o: gpu_68k_shr.h u235se.h startup.h sprintf.h music.h
-gpugame.o: gpu_68k_shr.h startup.h music.h u235se.h
+gpugame.o: gpu_68k_shr.h startup.h music.h u235se.h sprites.h
 
 gpugame.s: gpugame.c
 	gcc263 -DJAGUAR -DUSE_SKUNK -I/home/jjones/Documents/Projects/jaguar-sdk/jaguar/include -I/home/jjones/Documents/Projects/jaguar-sdk/jaguar/skunk/include -b agpu -O2 -fomit-frame-pointer -fno-builtin -S gpugame.c

@@ -4,6 +4,9 @@
 #include "startup.h"
 #include "u235se.h"
 #include "music.h"
+#include "sprites.h"
+
+#define NULL ((void *)0)
 
 extern drawString(void *surfaddr, unsigned long coords, void *str);
 
@@ -105,6 +108,54 @@ static void ChangeMusicGPU(void *music)
     run68kCmd();
 }
 
+static void SetSpriteList(Sprite *list)
+{
+    cpuData = list;
+    cpuCmd = CPUCMD_SET_SPRITE_LIST;
+
+    run68kCmd();
+}
+
+/* XXX Don't use more than 6 parameters. Stack parameter passing is buggy (Uses return addr as 6th parameter)  */
+static void make_sprite(
+    Sprite *sprite,
+    void *address,          /* Must be phrase aligned */
+    unsigned int width,     /* Must be phrase aligned */
+    unsigned int height,
+    unsigned int depth,
+    int flags               /* bit 0: 1 if color 0 is transparent, 0 otherwise */
+                            /* bit 1: 1 if double-buffered, 0 otherwise */
+)
+{
+    sprite->next = NULL;
+
+    /* First phrase low dword: type (0) | yPos (0) | height | link */
+    sprite->firstPhraseLowTemplate = height << 14;  /* Shift height into place */
+
+    /* First phrase high dword: link (0) | address (data) */
+    sprite->firstPhraseHighTemplate = (unsigned int)address <<= (11-3); /* Shift address into place */
+
+    /*
+     * Convert width to phrases:
+     *  >> 1 (/ 2) for 32bpp (depth = 5)
+     *  >> 2 (/ 4) for 16bpp (depth = 4)
+     *  >> 3 (/ 8) for 8bpp  (depth = 3)
+     *  >> 4 (/ 16) for 4bpp (depth = 2)
+     *  >> 5 (/ 32) for 2bpp (depth = 1)
+     *  >> 6 (/ 64) for 1bpp (depth = 0)
+     */
+    width >>= (6 - depth);
+
+    /* Third word: x (0) | depth | pitch (1|2) | dwidth | iwidth */
+    sprite->secondPhraseLowTemplate = (depth << 12) | ((((flags & 1) >> 1) + 1) << 15) | (width << 18) | ((width & 0xf) << 28);
+
+    /* Fourth word: iwidth | trans */
+    sprite->secondPhraseHighTemplate = (width >> 4) | ((flags & 1) << 15);
+
+    SET_SPRITE_X(sprite, 32);
+    SET_SPRITE_Y(sprite, 32);
+}
+
 static void gpu_main(void)
 {
     unsigned int i;
@@ -114,6 +165,19 @@ static void gpu_main(void)
     unsigned int newPad1;
     unsigned int printDelay = 0;
     int newMusic = 0;
+    Sprite *sprite = &spriteData[0];
+
+    make_sprite(sprite,
+                screenbmp,
+                BMP_PHRASES * 4,
+                BMP_HEIGHT,
+                SPRITE_DEPTH16,
+                SPRITE_SINGLE_BUFFERED | SPRITE_NOT_TRANSPARENT);
+
+    SET_SPRITE_X(sprite, 16); /* Copied from InitLister logic, NTSC version for 320x240 bitmap */
+    SET_SPRITE_Y(sprite, 13); /* Copied from InitLister logic, NTSC version for 320x240 bitmap */
+
+    SetSpriteList(sprite);
 
     while (1) {
         while ((oldTicks + 1) >= ticks);
