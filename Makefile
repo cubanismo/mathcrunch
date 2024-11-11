@@ -22,7 +22,7 @@ endif
 CFLAGS += -fno-builtin
 
 # Additional AGPU CFLAGS
-CFLAGS_JRISC += -v -fno-builtin
+CFLAGS_JRISC += -fno-builtin
 
 PROGS = mathcrunch.cof
 
@@ -44,6 +44,6 @@ main.o: gpu_68k_shr.h u235se.h startup.h sprintf.h music.h
 gpugame.o: gpu_68k_shr.h startup.h music.h u235se.h
 
 gpugame.s: gpugame.c
-	gcc263 -DJAGUAR -DUSE_SKUNK -I/home/jjones/Documents/Projects/jaguar-sdk/jaguar/include -I/home/jjones/Documents/Projects/jaguar-sdk/jaguar/skunk/include -b agpu -O2 -fomit-frame-pointer -v -fno-builtin -S gpugame.c
+	gcc263 -DJAGUAR -DUSE_SKUNK -I/home/jjones/Documents/Projects/jaguar-sdk/jaguar/include -I/home/jjones/Documents/Projects/jaguar-sdk/jaguar/skunk/include -b agpu -O2 -fomit-frame-pointer -fno-builtin -S gpugame.c
 
 include $(JAGSDK)/tools/build/jagrules.mk
