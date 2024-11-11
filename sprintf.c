@@ -181,7 +181,7 @@ sprintf(char *buf, const char *fmt, ...)
 
 #if defined(USE_SKUNK) || defined(USE_GD)
 /* Not thread safe at all */
-static char pfbuf[SPRINTF_MAX+1]; 
+static char pfbuf[SPRINTF_MAX+1] __attribute__((aligned(2)));
 
 int printf(const char *fmt, ...)
 {
