@@ -22,7 +22,7 @@ static u8 GD_Bios[1024 * 4];
 
 static void blitToGpu(void *dst, void *src, unsigned long size)
 {
-    while ((*B_CMD & 1) == 0);
+    while ((*(volatile long *)B_CMD & 1) == 0);
 
     /* Use 32-bit version of GPU memory */
     dst = (unsigned char *)dst + 0x8000;
@@ -40,7 +40,7 @@ static void blitToGpu(void *dst, void *src, unsigned long size)
 
     *B_CMD = SRCEN|UPDA1|UPDA2|LFU_REPLACE;
 
-    while ((*B_CMD & 1) == 0);
+    while ((*(volatile long *)B_CMD & 1) == 0);
 }
 
 void printStats(void)
