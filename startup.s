@@ -429,7 +429,6 @@ HandleInt:
 .macro HANDLE_CPUCMD cmdNum, func, regParam
 		cmp.l	#\cmdNum, d0
 		bne.s	.no\~
-		movem.l	d0-d1/a0-a1, -(sp)
 .if \# > 2
 		move.l	\regParam, -(sp)
 .endif
@@ -437,7 +436,8 @@ HandleInt:
 .if \# > 2
 		addq.l	#4, sp
 .endif
-		movem.l	(sp)+, d0-d1/a0-a1
+		moveq.l	#0, d0
+		move.l	d0, _cpuCmd
 .no\~:
 .endm
 
@@ -447,7 +447,7 @@ HandleInt:
 ;      Dispatch a command from the the GPU on the 68k
 ;
 HandleGpu:
-		movem.l	d0-d1, -(sp)
+		movem.l	d0-d1/a0-a1, -(sp)
 
 		move.l	_cpuCmd, d0
 		move.l	_cpuData, d1
@@ -455,8 +455,7 @@ HandleGpu:
 		HANDLE_CPUCMD 1, _printStats
 		HANDLE_CPUCMD 2, _ChangeMusic, d1
 
-		move.l	#0, _cpuCmd
-		movem.l	(sp)+, d0-d1
+		movem.l	(sp)+, d0-d1/a0-a1
 		rts
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
