@@ -271,7 +271,9 @@ InitU235se:
 ; C-callable function to change the mod file u235se is playing
 ;
 _ChangeMusic:
-		movem.l	a0,-(sp)
+		move.l	4(sp), U235SE_moduleaddr
+
+		movem.l	d1-d7/a0-a6,-(sp)
 
 		move.l	#U235SE_NOMOD, U235SE_playmod
 		move.l	#stopmuscmds, U235SE_sfxplaylist_ptr
@@ -279,7 +281,6 @@ _ChangeMusic:
 		tst.l	U235SE_sfxplaylist_ptr
 		bne	.waitsilence
 
-		move.l	8(sp), U235SE_moduleaddr
 		tst.l	U235SE_moduleaddr
 		beq	.donechg
 
@@ -290,7 +291,7 @@ _ChangeMusic:
 
 .donechg:
 		move.l	U235SE_moduleaddr, d0
-		movem.l	(sp)+,a0
+		movem.l	(sp)+,d1-d7/a0-a6
 		rts
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
