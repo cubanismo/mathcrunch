@@ -46,6 +46,7 @@ gputext.o: g_gpugame_codesize.inc
 
 g_gpugame_codesize.inc: gpugame.o
 	@echo "GPUGAME_CODESIZE .equ $$`symval $< _gpugame_size`" | tee $@
+GENERATED += g_gpugame_codesize.inc
 
 gpugame.s: gpugame.c
 	gcc263 -DJAGUAR -DUSE_SKUNK -I/home/jjones/Documents/Projects/jaguar-sdk/jaguar/include -I/home/jjones/Documents/Projects/jaguar-sdk/jaguar/skunk/include -b agpu -O2 -fomit-frame-pointer -fno-builtin -S gpugame.c
