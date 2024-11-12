@@ -22,6 +22,7 @@ static u8 GD_Bios[1024 * 4];
 
 static void blitToGpu(void *dst, void *src, unsigned long size)
 {
+    printf("Blitting GPU code from 0x%08x size 0x%08x to 0x%08x\n", (long)src, size, (long)dst);
     while ((*(volatile long *)B_CMD & 1) == 0);
 
     /* Use 32-bit version of GPU memory */
@@ -77,11 +78,9 @@ int start()
     GD_Install(GD_Bios);
 #endif
 
-    printf("Running blit to GPU\n");
-
     blitToGpu(G_RAM, gpugame_start, (long)gpugame_size);
-    blitToGpu((unsigned char *)G_RAM + 0x800, gputext_start, (long)gputext_size);
-    printf("Done. spinCount = %u\n", spinCount);
+    blitToGpu(gputext_dst, gputext_start, (long)gputext_size);
+    printf("Done blitting GPU code\n");
 
     *pc = (unsigned long)&gpu_start;
     *ctrl = GPUGO;

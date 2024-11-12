@@ -1,15 +1,21 @@
 		.include "jaguar.inc"
+		.include "g_gpugame_codesize.inc"
+
+GPUCODE_OFFSET	.equ	(GPUGAME_CODESIZE + 7) & ~7	; Phrase-align this file's code
 
 BMP_WIDTH	.equ	320 ; XXX Hack
 		.globl	_drawString
 		.globl	_gputext_start
 		.globl	_gputext_end
 		.globl	_gputext_size
+		.globl	_gputext_dst
 
 		.text
+		.dphrase
 _gputext_start:
 		.gpu
-		.org	(G_RAM + $800)
+		.org	(G_RAM + GPUCODE_OFFSET)
+_gputext_dst:
 
 ; These are all hard-coded from the clr6x12.jft font for now.
 CHR_WIDTH	.equ	6

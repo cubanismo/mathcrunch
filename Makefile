@@ -42,6 +42,10 @@ $(PROGS): $(ALLOBJS)
 music.o: *.mod
 main.o: gpu_68k_shr.h u235se.h startup.h sprintf.h music.h
 gpugame.o: gpu_68k_shr.h startup.h music.h u235se.h sprites.h
+gputext.o: g_gpugame_codesize.inc
+
+g_gpugame_codesize.inc: gpugame.o
+	@echo "GPUGAME_CODESIZE .equ $$`symval $< _gpugame_size`" | tee $@
 
 gpugame.s: gpugame.c
 	gcc263 -DJAGUAR -DUSE_SKUNK -I/home/jjones/Documents/Projects/jaguar-sdk/jaguar/include -I/home/jjones/Documents/Projects/jaguar-sdk/jaguar/skunk/include -b agpu -O2 -fomit-frame-pointer -fno-builtin -S gpugame.c

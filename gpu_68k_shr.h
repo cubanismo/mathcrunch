@@ -21,6 +21,7 @@ extern unsigned long gpugame_size[];
 extern unsigned long gputext_start[];
 extern unsigned long gputext_end[];
 extern unsigned long gputext_size[];
+extern unsigned long gputext_dst[];
 
 extern void gpu_start(void);
 
