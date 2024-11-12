@@ -578,7 +578,7 @@ height:     	.ds.w   1
 
 		.long
 spriteList:	.ds.l	1
-_spriteData:	.ds.l	32*2
+_spriteData:	.ds.l	40*2			; 2 * sizeof(Sprite) in sprites.h
 _gpuStr:	.ds.b	128
 _dspStr:	.ds.b	128
 

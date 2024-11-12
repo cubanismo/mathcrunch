@@ -9,8 +9,10 @@ typedef struct Sprite {
     unsigned long int secondPhraseHighTemplate; /* Off 16: iwidth, trans */
     unsigned long int x;                        /* Off 20 */
     unsigned long int y;                        /* Off 24 */
-    unsigned long int front;                    /* Off 28 */
-} Sprite; /* Size = 32 */
+    unsigned long int frontIdx;                 /* Off 28 */
+    unsigned long int surfAddr;                 /* Off 32 */
+    unsigned long int blitterFlags;             /* Off 36 */
+} Sprite; /* Size = 40 */
 
 extern Sprite spriteData[];
 

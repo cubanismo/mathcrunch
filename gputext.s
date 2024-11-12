@@ -3,7 +3,6 @@
 
 GPUCODE_OFFSET	.equ	(GPUGAME_CODESIZE + 7) & ~7	; Phrase-align this file's code
 
-BMP_WIDTH	.equ	320 ; XXX Hack
 		.globl	_drawString
 		.globl	_gputext_start
 		.globl	_gputext_end
@@ -25,14 +24,18 @@ FNTFIRSTCHR	.equ	$20
 FNTLASTCHR	.equ	$7f
 zeror		.equr	r6
 
-_drawString:	; Write a NUL-terminated string to the game list
-		;  r0 = surfaddr:   The  surface to draw to
+_drawString:	; Write a NUL-terminated string to a surface
+		;  r0 = sprite:     The sprite surface to draw to
 		;  r1 = coords:     The packed coordinates (y<<16)|x
 		;  r2 = stringaddr: Pointer to the NUL-terminated string
 		;  fontdata:   The 1bpp font surface
 		moveq	#0, zeror			; 0 will be stored in various fields
 
+		move	r0, r14
+
 		movei	#A1_BASE, r11
+
+		load	(r14+8), r0			; Get surface address in r0
 
 		movei	#A1_CLIP, r3
 		movei	#$ffffffff, r4
@@ -44,11 +47,12 @@ _drawString:	; Write a NUL-terminated string to the game list
 		store	zeror, (r3)			; Store 0 in A1_CLIP (No clipping)
 		store	r4, (r5)			; Store white in B_PATD high dword
 
-		.assert BMP_WIDTH = 320
-		movei	#PITCH1|PIXEL16|WID320|XADDPIX|YADD0, r4
+		movei	#XADDPIX|YADD0, r12
+		load	(r14+9), r4
 		movei	#A1_FLAGS, r5
 
 		movei	#A1_FPIXEL, r7
+		or	r12, r4
 
 		; Add (-CHR_WIDTH, 1) to dst x, y pointers after each inner loop iter
 		movei	#(1<<16)|((-CHR_WIDTH)&$ffff), r8
