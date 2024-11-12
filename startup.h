@@ -3,6 +3,7 @@
 
 extern volatile unsigned long ticks;
 extern unsigned char screenbmp[];
+extern unsigned char playerbmp[];
 extern char gpuStr[];
 extern char dspStr[];
 
@@ -12,6 +13,9 @@ extern char dspStr[];
 #define BMP_HEIGHT 240
 #define BMP_PHRASES (BMP_WIDTH/PPP)
 #define BMP_LINES (BMP_HEIGHT*2)
+
+#define PLAYER_WIDTH 64
+#define PLAYER_HEIGHT 64
 
 extern long unsigned ChangeMusic(void *modFilePtr);
 extern void printStats(void);

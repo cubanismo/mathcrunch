@@ -59,6 +59,8 @@
 PPP     	.equ    4      			; Pixels per Phrase (1-bit)
 BMP_WIDTH   	.equ    320     		; Width in Pixels
 BMP_HEIGHT  	.equ    240    			; Height in Pixels
+PLAYER_WIDTH	.equ	64
+PLAYER_HEIGHT	.equ	64
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; End of STARTUP PICTURE CONFIGURATION
@@ -69,6 +71,7 @@ BMP_HEIGHT  	.equ    240    			; Height in Pixels
 		.globl	olp2set
 		.globl	_ticks
 		.globl	_screenbmp
+		.globl	_playerbmp
 
 		.globl  a_vdb
 		.globl  a_vde
@@ -87,10 +90,13 @@ BMP_HEIGHT  	.equ    240    			; Height in Pixels
 		.extern _cpuCmd;
 		.extern _cpuData;
 
+MAX_SPRITES	.equ	4			; 3 characters + the screen
 BMP_PHRASES 	.equ    (BMP_WIDTH/PPP) 	; Width in Phrases
 BMP_LINES   	.equ    (BMP_HEIGHT*2)  	; Height in Half Scanlines
 BITMAP_OFF  	.equ    (2*8)       		; Two Phrases
-LISTSIZE    	.equ    5       		; List length (in phrases)
+LISTSIZE    	.equ    3 + (MAX_SPRITES * 2)	; List length (in phrases):
+						; 2 branch objs + 1 stop obj
+						; + MAX_SPRITES bitmap objs
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; Program Entry Point Follows...
 
@@ -390,6 +396,7 @@ InitLister:
 		move.l	d1,(a0)+
 
 ; Write a STOP object at end of list
+		lea     listbuf+((LISTSIZE-1)*8),a0
 		clr.l   (a0)+
 		move.l  #(STOPOBJ|O_STOPINTS),(a0)+
 
@@ -578,11 +585,14 @@ height:     	.ds.w   1
 
 		.long
 spriteList:	.ds.l	1
-_spriteData:	.ds.l	40*2			; 2 * sizeof(Sprite) in sprites.h
+_spriteData:	.ds.l	40*MAX_SPRITES		; MAX_SPRITES * sizeof(Sprite)
 _gpuStr:	.ds.b	128
 _dspStr:	.ds.b	128
 
 		.phrase
 _screenbmp:	.ds.l	BMP_WIDTH*BMP_HEIGHT*(PPP>>1)
+
+		.phrase
+_playerbmp:	.ds.l	PLAYER_WIDTH*PLAYER_HEIGHT*(PPP>>1)
 
 		.end

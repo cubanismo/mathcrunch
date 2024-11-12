@@ -233,19 +233,33 @@ static void gpu_main(void)
     unsigned int newPad1;
     unsigned int printDelay = 0;
     int newMusic = 0;
-    Sprite *sprite = &spriteData[0];
+    Sprite *screen = &spriteData[0];
+    Sprite *player = &spriteData[1];
+    unsigned int player_x = 32;
+    unsigned int player_y = 32;
 
-    make_sprite(sprite,
+    make_sprite(screen,
                 screenbmp,
                 BMP_PHRASES * 4,
                 BMP_HEIGHT,
                 SPRITE_DEPTH16,
                 SPRITE_SINGLE_BUFFERED | SPRITE_NOT_TRANSPARENT);
 
-    SET_SPRITE_X(sprite, 16); /* Copied from InitLister logic, NTSC version for 320x240 bitmap */
-    SET_SPRITE_Y(sprite, 13); /* Copied from InitLister logic, NTSC version for 320x240 bitmap */
+    SET_SPRITE_X(screen, 16); /* Copied from InitLister logic, NTSC version for 320x240 bitmap */
+    SET_SPRITE_Y(screen, 13); /* Copied from InitLister logic, NTSC version for 320x240 bitmap */
 
-    SetSpriteList(sprite);
+    make_sprite(player,
+                playerbmp,
+                PLAYER_WIDTH,
+                PLAYER_HEIGHT,
+                SPRITE_DEPTH16,
+                SPRITE_SINGLE_BUFFERED | SPRITE_TRANSPARENT);
+
+    blit_rect(player, 0xff00ff00, 0, 0, PLAYER_WIDTH, PLAYER_HEIGHT);
+
+    screen->next = player;
+
+    SetSpriteList(screen);
 
     while (1) {
         while ((oldTicks + 1) >= ticks);
@@ -254,48 +268,48 @@ static void gpu_main(void)
         color = (oldTicks & 0xffff);
         color |= (color << 16);
 
-        blit_color(sprite, color);
-        blit_rect(sprite, 0xff77ff77, 40, 40, 240, 5);
-        blit_rect(sprite, 0xff77ff77, 40, 45, 239, 5);
-        blit_rect(sprite, 0xff77ff77, 40, 50, 238, 5);
-        blit_rect(sprite, 0xff77ff77, 40, 55, 237, 5);
-        blit_rect(sprite, 0xff77ff77, 40, 60, 236, 5);
-        blit_rect(sprite, 0xff77ff77, 40, 65, 235, 5);
-        blit_rect(sprite, 0xff77ff77, 40, 70, 234, 5);
-        blit_rect(sprite, 0xff77ff77, 40, 75, 233, 5);
-        blit_rect(sprite, 0xff77ff77, 40, 80, 232, 5);
-        blit_rect(sprite, 0xff77ff77, 40, 85, 231, 5);
-        blit_rect(sprite, 0xff77ff77, 40, 90, 230, 5);
+        blit_color(screen, color);
+        blit_rect(screen, 0xff77ff77, 40, 40, 240, 5);
+        blit_rect(screen, 0xff77ff77, 40, 45, 239, 5);
+        blit_rect(screen, 0xff77ff77, 40, 50, 238, 5);
+        blit_rect(screen, 0xff77ff77, 40, 55, 237, 5);
+        blit_rect(screen, 0xff77ff77, 40, 60, 236, 5);
+        blit_rect(screen, 0xff77ff77, 40, 65, 235, 5);
+        blit_rect(screen, 0xff77ff77, 40, 70, 234, 5);
+        blit_rect(screen, 0xff77ff77, 40, 75, 233, 5);
+        blit_rect(screen, 0xff77ff77, 40, 80, 232, 5);
+        blit_rect(screen, 0xff77ff77, 40, 85, 231, 5);
+        blit_rect(screen, 0xff77ff77, 40, 90, 230, 5);
 
-        blit_rect(sprite, 0xff77ff77, 40, 100, 240, 5);
-        blit_rect(sprite, 0xff77ff77, 40, 105, 236, 5);
-        blit_rect(sprite, 0xff77ff77, 40, 110, 232, 5);
-        blit_rect(sprite, 0xff77ff77, 40, 115, 228, 5);
-        blit_rect(sprite, 0xff77ff77, 40, 120, 224, 5);
-        blit_rect(sprite, 0xff77ff77, 40, 125, 220, 5);
-        blit_rect(sprite, 0xff77ff77, 40, 130, 216, 5);
-        blit_rect(sprite, 0xff77ff77, 40, 135, 212, 5);
-        blit_rect(sprite, 0xff77ff77, 40, 140, 208, 5);
-        blit_rect(sprite, 0xff77ff77, 40, 145, 204, 5);
-        blit_rect(sprite, 0xff77ff77, 40, 150, 200, 5);
+        blit_rect(screen, 0xff77ff77, 40, 100, 240, 5);
+        blit_rect(screen, 0xff77ff77, 40, 105, 236, 5);
+        blit_rect(screen, 0xff77ff77, 40, 110, 232, 5);
+        blit_rect(screen, 0xff77ff77, 40, 115, 228, 5);
+        blit_rect(screen, 0xff77ff77, 40, 120, 224, 5);
+        blit_rect(screen, 0xff77ff77, 40, 125, 220, 5);
+        blit_rect(screen, 0xff77ff77, 40, 130, 216, 5);
+        blit_rect(screen, 0xff77ff77, 40, 135, 212, 5);
+        blit_rect(screen, 0xff77ff77, 40, 140, 208, 5);
+        blit_rect(screen, 0xff77ff77, 40, 145, 204, 5);
+        blit_rect(screen, 0xff77ff77, 40, 150, 200, 5);
 
-        blit_rect(sprite, 0xff77ff77, 40, 160, 240, 5);
-        blit_rect(sprite, 0xff77ff77, 41, 165, 238, 5);
-        blit_rect(sprite, 0xff77ff77, 42, 170, 236, 5);
-        blit_rect(sprite, 0xff77ff77, 43, 175, 234, 5);
-        blit_rect(sprite, 0xff77ff77, 44, 180, 232, 5);
-        blit_rect(sprite, 0xff77ff77, 45, 185, 230, 5);
-        blit_rect(sprite, 0xff77ff77, 46, 190, 228, 5);
-        blit_rect(sprite, 0xff77ff77, 47, 195, 226, 5);
-        blit_rect(sprite, 0xff77ff77, 48, 200, 224, 5);
-        blit_rect(sprite, 0xff77ff77, 49, 205, 222, 5);
-        blit_rect(sprite, 0xff77ff77, 50, 210, 220, 5);
+        blit_rect(screen, 0xff77ff77, 40, 160, 240, 5);
+        blit_rect(screen, 0xff77ff77, 41, 165, 238, 5);
+        blit_rect(screen, 0xff77ff77, 42, 170, 236, 5);
+        blit_rect(screen, 0xff77ff77, 43, 175, 234, 5);
+        blit_rect(screen, 0xff77ff77, 44, 180, 232, 5);
+        blit_rect(screen, 0xff77ff77, 45, 185, 230, 5);
+        blit_rect(screen, 0xff77ff77, 46, 190, 228, 5);
+        blit_rect(screen, 0xff77ff77, 47, 195, 226, 5);
+        blit_rect(screen, 0xff77ff77, 48, 200, 224, 5);
+        blit_rect(screen, 0xff77ff77, 49, 205, 222, 5);
+        blit_rect(screen, 0xff77ff77, 50, 210, 220, 5);
 
         /* Wait for blitter to idle */
         while ((*(volatile long *)B_CMD & 1) == 0);
 
-        drawString(sprite, (10 << 16) | 20, gpuStr);
-        drawString(sprite, (20 << 16) | 20, dspStr);
+        drawString(screen, (10 << 16) | 20, gpuStr);
+        drawString(screen, (20 << 16) | 20, dspStr);
 
         spinCount += 1;
 
@@ -310,6 +324,28 @@ static void gpu_main(void)
                 newMusic = 0;
             }
         }
+
+        if (((oldPad1 ^ newPad1) & newPad1) & U235SE_BUT_A) {
+            if (screen->next) {
+                screen->next = NULL;
+            } else {
+                screen->next = player;
+            }
+        }
+
+        if (newPad1 & U235SE_BUT_UP) {
+            player_y -= 1;
+        } else if (newPad1 & U235SE_BUT_DOWN) {
+            player_y += 1;
+        }
+
+        if (newPad1 & U235SE_BUT_LEFT) {
+            player_x -= 1;
+        } else if (newPad1 & U235SE_BUT_RIGHT) {
+            player_x += 1;
+        }
+        SET_SPRITE_X(player, player_x);
+        SET_SPRITE_Y(player, player_y);
 
         oldPad1 = *u235se_pad1;
 
