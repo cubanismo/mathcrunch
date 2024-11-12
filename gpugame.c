@@ -133,6 +133,7 @@ static void make_sprite(
 {
     unsigned int blitterFlags = PITCH1 | DEPTH_TO_BLIT_DEPTH(depth);
 
+    /* This generates broken code. Use the if statements below instead
     switch (width) {
     case 16:
         blitterFlags |= WID16;
@@ -167,6 +168,29 @@ static void make_sprite(
     default:
         blitterFlags = 0;
         break;
+    } */
+    if (width == 16) {
+        blitterFlags |= WID16;
+    } else if (width == 32) {
+        blitterFlags |= WID32;
+    } else if (width == 48) {
+        blitterFlags |= WID48;
+    } else if (width == 64) {
+        blitterFlags |= WID64;
+    } else if (width == 96) {
+        blitterFlags |= WID96;
+    } else if (width == 128) {
+        blitterFlags |= WID128;
+    } else if (width == 192) {
+        blitterFlags |= WID192;
+    } else if (width == 256) {
+        blitterFlags |= WID256;
+    } else if (width == 320) {
+        blitterFlags |= WID320;
+    } else if (width == 512) {
+        blitterFlags |= WID512;
+    } else {
+        blitterFlags = 0;
     }
 
     sprite->blitterFlags = blitterFlags;
