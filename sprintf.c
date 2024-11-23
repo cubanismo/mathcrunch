@@ -204,6 +204,6 @@ int printf(const char *fmt, ...)
 // Override compiler optimizations
 int puts(const char *str)
 {
-    printf("%s", str);
+    return printf("%s", str);
 }
 #endif /* defined(USE_SKUNK) */
