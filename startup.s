@@ -590,7 +590,7 @@ _gpuStr:	.ds.b	128
 _dspStr:	.ds.b	128
 
 		.phrase
-_screenbmp:	.ds.l	BMP_WIDTH*BMP_HEIGHT*(PPP>>1)
+_screenbmp:	.ds.l	BMP_WIDTH*BMP_HEIGHT*(PPP>>1)*2
 
 		.phrase
 _playerbmp:	.ds.l	PLAYER_WIDTH*PLAYER_HEIGHT*(PPP>>1)

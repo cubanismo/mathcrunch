@@ -9,7 +9,7 @@ typedef struct Sprite {
     unsigned long int secondPhraseHighTemplate; /* Off 16: iwidth, trans */
     unsigned long int x;                        /* Off 20 */
     unsigned long int y;                        /* Off 24 */
-    unsigned long int frontIdx;                 /* Off 28 */
+    unsigned long int frameSize;                /* Off 28 */
     unsigned long int surfAddr;                 /* Off 32 */
     unsigned long int blitterFlags;             /* Off 36 */
 } Sprite; /* Size = 40 */
@@ -32,5 +32,7 @@ extern Sprite spriteData[];
 
 #define SET_SPRITE_X(s_, x_) (s_)->x = (x_)
 #define SET_SPRITE_Y(s_, y_) (s_)->y = ((y_) << 4)
+
+#define PACK_XY(x_, y_) (((y_) << 16) | (x_))
 
 #endif /* SPRITES_H_ */
