@@ -18,10 +18,10 @@ extern volatile unsigned long blitCount;
 extern unsigned long gpugame_start[];
 extern unsigned long gpugame_end[];
 extern unsigned long gpugame_size[];
-extern unsigned long gputext_start[];
-extern unsigned long gputext_end[];
-extern unsigned long gputext_size[];
-extern unsigned long gputext_dst[];
+extern unsigned long gpuasm_start[];
+extern unsigned long gpuasm_end[];
+extern unsigned long gpuasm_size[];
+extern unsigned long gpuasm_dst[];
 
 extern void gpu_start(void);
 

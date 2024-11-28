@@ -5,7 +5,7 @@ include $(JAGSDK)/tools/build/jagdefs.mk
 SKUNKLIB := 1
 GDLIB := 0
 
-OBJS=startup.o main.o u235sec.o sprintf.o util.o $(CGPUOBJS) music.o gputext.o
+OBJS=startup.o main.o u235sec.o sprintf.o util.o $(CGPUOBJS) music.o gpuasm.o
 
 CGPUOBJS=gpugame.o
 
@@ -42,7 +42,7 @@ $(PROGS): $(ALLOBJS)
 music.o: *.mod
 main.o: gpu_68k_shr.h u235se.h startup.h sprintf.h music.h
 gpugame.o: gpu_68k_shr.h startup.h music.h u235se.h sprites.h
-gputext.o: g_gpugame_codesize.inc
+gpuasm.o: g_gpugame_codesize.inc
 
 g_gpugame_codesize.inc: gpugame.o
 	@echo "GPUGAME_CODESIZE .equ $$`symval $< _gpugame_size`" | tee $@

@@ -83,7 +83,7 @@ int start()
 #endif
 
     blitToGpu(G_RAM, gpugame_start, (long)gpugame_size);
-    blitToGpu(gputext_dst, gputext_start, (long)gputext_size);
+    blitToGpu(gpuasm_dst, gpuasm_start, (long)gpuasm_size);
     printf("Done blitting GPU code\n");
 
     *pc = (unsigned long)&gpu_start;

@@ -4,20 +4,20 @@
 GPUCODE_OFFSET	.equ	(GPUGAME_CODESIZE + 7) & ~7	; Phrase-align this file's code
 
 		.globl	_drawStringOff
-		.globl	_gputext_start
-		.globl	_gputext_end
-		.globl	_gputext_size
-		.globl	_gputext_dst
+		.globl	_gpuasm_start
+		.globl	_gpuasm_end
+		.globl	_gpuasm_size
+		.globl	_gpuasm_dst
 		.globl	_update_animations
 
 		.extern	_animations
 
 		.text
 		.dphrase
-_gputext_start:
+_gpuasm_start:
 		.gpu
 		.org	(G_RAM + GPUCODE_OFFSET)
-_gputext_dst:
+_gpuasm_dst:
 
 ; These are all hard-coded from the clr6x12.jft font for now.
 CHR_WIDTH	.equ	6
@@ -320,9 +320,9 @@ done:
 		.long
 
 		.68000
-_gputext_end:
-_gputext_size	.equ	*-_gputext_start
-		.print	"gputext Code size is ",/l/x _gputext_size,""
+_gpuasm_end:
+_gpuasm_size	.equ	*-_gpuasm_start
+		.print	"gpuasm Code size is ",/l/x _gpuasm_size,""
 
 		.data
 		.phrase

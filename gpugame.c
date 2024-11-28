@@ -5,15 +5,10 @@
 #include "u235se.h"
 #include "music.h"
 #include "sprites.h"
+#include "gpuasm.h"
 
 #define NULL ((void *)0)
 #define GRID_SIZE (40)
-
-extern void drawStringOff(const Sprite *sprite,
-                          unsigned long coords,
-                          void *str,
-                          unsigned long frame_offset);
-extern void update_animations(void);
 
 volatile unsigned long cpuCmd;
 void *volatile cpuData;
