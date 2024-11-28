@@ -14,7 +14,19 @@ typedef struct Sprite {
     unsigned long int blitterFlags;             /* Off 36 */
 } Sprite; /* Size = 40 */
 
+typedef struct Animation {
+    struct Animation *next;                     /* Off 0 */
+    Sprite *sprite;                             /* Off 4 */
+
+    unsigned int speedPerTick;                  /* Off 8 */
+
+    unsigned int endX;                          /* Off 12 */
+    unsigned int endY;                          /* Off 16 */
+} Animation; /* Size = 20 */
+
 extern Sprite spriteData[];
+extern Animation animationData[];
+extern Animation *animations;
 
 /* sprite depths for make_sprite. Based on O_DEPTH* in jaguar.inc */
 #define SPRITE_DEPTH32 5
@@ -32,6 +44,9 @@ extern Sprite spriteData[];
 
 #define SET_SPRITE_X(s_, x_) (s_)->x = (x_)
 #define SET_SPRITE_Y(s_, y_) (s_)->y = ((y_) << 4)
+
+#define GET_SPRITE_X(s_) ((s_)->x)
+#define GET_SPRITE_Y(s_) ((s_)->y >> 4)
 
 #define PACK_XY(x_, y_) (((y_) << 16) | (x_))
 

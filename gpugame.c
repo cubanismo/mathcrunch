@@ -7,11 +7,13 @@
 #include "sprites.h"
 
 #define NULL ((void *)0)
+#define GRID_SIZE (40)
 
 extern void drawStringOff(const Sprite *sprite,
                           unsigned long coords,
                           void *str,
                           unsigned long frame_offset);
+extern void update_animations(void);
 
 volatile unsigned long cpuCmd;
 void *volatile cpuData;
@@ -304,7 +306,7 @@ static void init_screen(Sprite *screen, unsigned int frame, unsigned int color)
 static void gpu_main(void)
 {
     unsigned int i;
-    unsigned int oldTicks = ticks;
+    unsigned int oldTicks;
     unsigned int color = 0x00ff00ff;
     unsigned int oldPad1 = 0;
     unsigned int newPad1;
@@ -315,6 +317,9 @@ static void gpu_main(void)
     unsigned int player_x = 32;
     unsigned int player_y = 32;
     unsigned int sprite_frame = 1;
+    Animation *a, *aLocal;
+
+    animations = NULL;
 
     make_sprite(screen,
                 screenbmp,
@@ -354,6 +359,8 @@ static void gpu_main(void)
         oldTicks = ticks;
         while (ticks == oldTicks);
 
+        update_animations();
+
         sprite_frame = !sprite_frame;
 
         blit_rect(screen, sprite_frame, color, PACK_XY(20, 10), 240, 30);
@@ -388,19 +395,43 @@ static void gpu_main(void)
             }
         }
 
+        a = NULL;
+        /*
+         * Work around compiler bug. It acts as if loading "animations" into a
+         * register will set the flags, and seems to do a cmpq 0, reg based on
+         * it, but loads do not set flags on JRISC
+         */
+        aLocal = animations;
         if (newPad1 & U235SE_BUT_UP) {
-            player_y -= 1;
+            if (!aLocal) {
+                player_y -= GRID_SIZE;
+                a = &animationData[0];
+            }
         } else if (newPad1 & U235SE_BUT_DOWN) {
-            player_y += 1;
+            if (!aLocal) {
+                player_y += GRID_SIZE;
+                a = &animationData[0];
+            }
+        } else if (newPad1 & U235SE_BUT_LEFT) {
+            if (!aLocal) {
+                player_x -= GRID_SIZE;
+                a = &animationData[0];
+            }
+        } else if (newPad1 & U235SE_BUT_RIGHT) {
+            if (!aLocal) {
+                player_x += GRID_SIZE;
+                a = &animationData[0];
+            }
         }
 
-        if (newPad1 & U235SE_BUT_LEFT) {
-            player_x -= 1;
-        } else if (newPad1 & U235SE_BUT_RIGHT) {
-            player_x += 1;
+        if (a) {
+            a->sprite = player;
+            a->endX = player_x;
+            a->endY = player_y;
+            a->speedPerTick = 4;
+            a->next = animations;
+            animations = a;
         }
-        SET_SPRITE_X(player, player_x);
-        SET_SPRITE_Y(player, player_y);
 
         oldPad1 = *u235se_pad1;
 

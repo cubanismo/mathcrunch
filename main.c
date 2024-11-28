@@ -10,9 +10,13 @@
 #include "music.h"
 #include "u235se.h"
 #include "sprintf.h"
+#include "sprites.h"
 
 volatile unsigned long spinCount;
 volatile unsigned long blitCount;
+
+Animation animationData[4];
+Animation *animations;
 
 unsigned long count;
 
