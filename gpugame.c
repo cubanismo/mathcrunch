@@ -8,12 +8,15 @@
 #include "gpuasm.h"
 
 #define NULL ((void *)0)
-#define GRID_SIZE (40)
+#define GRID_SIZE_X (PLAYER_WIDTH)
+#define GRID_SIZE_Y (PLAYER_HEIGHT)
 
 volatile unsigned long cpuCmd;
 void *volatile cpuData;
 
 static void gpu_main(void);
+
+#define SHORT_MUL(a, b) ((unsigned long)((unsigned short)(a) * (unsigned short)(b)))
 
 /* This has to be the first function, since gcc sets up the stack in the first function */
 void gpu_start(void)
@@ -38,12 +41,12 @@ static unsigned int calc_frame_offset(unsigned int frameSize, unsigned int frame
     return result;
 }
 
-static inline void drawString(const Sprite *sprite,
-                              unsigned int frameNum,
-                              unsigned long coords,
-                              void *str)
+static inline void draw_string(const Sprite *sprite,
+                               unsigned int frameNum,
+                               unsigned long coords,
+                               void *str)
 {
-    drawStringOff(sprite, coords, str, calc_frame_offset(sprite->frameSize, frameNum));
+    draw_string_off(sprite, coords, str, calc_frame_offset(sprite->frameSize, frameNum));
 }
 
 static void blit_rect(
@@ -139,6 +142,13 @@ static void SetSpriteList(Sprite *list)
     run68kCmd();
 }
 
+static void update_score_gpu(void)
+{
+    cpuCmd = CPUCMD_UPDATE_SCORE;
+
+    run68kCmd();
+}
+
 #define DEPTH_TO_BLIT_DEPTH(d_) ((d_) << 3)
 
 /* Shift address into place for first phrase high word of bitmap object*/
@@ -164,6 +174,9 @@ static void make_sprite(
         break;
     case 32:
         blitterFlags |= WID32;
+        break;
+    case 40:
+        blitterFlags |= WID40;
         break;
     case 48:
         blitterFlags |= WID48;
@@ -197,6 +210,8 @@ static void make_sprite(
         blitterFlags |= WID16;
     } else if (width == 32) {
         blitterFlags |= WID32;
+    } else if (width == 40) {
+        blitterFlags |= WID40;
     } else if (width == 48) {
         blitterFlags |= WID48;
     } else if (width == 64) {
@@ -258,60 +273,74 @@ static void set_sprite_frame(
     sprite->firstPhraseHighTemplate = ADDR_TO_OBJ_BITMAP(sprite->surfAddr + calc_frame_offset(sprite->frameSize, frame));
 }
 
+static const unsigned int GRID_START_X = 40;
+static const unsigned int GRID_START_Y = 40;
+
+#define GRID_CLR                0x60e960e9
+#define SCORE_BOX_CLR           0x1bff1bff
+#define TITLE_BORDER_CLR        0xf7d6f7d6
+
 static void init_screen(Sprite *screen, unsigned int frame, unsigned int color)
 {
+    volatile int a;
+    volatile int b = 234;
+
+    /* Clear to backgroud color */
     blit_color(screen, frame, color);
-    blit_rect(screen, frame, 0xff77ff77, PACK_XY(40, 40), 240, 5);
-    blit_rect(screen, frame, 0xff77ff77, PACK_XY(40, 45), 239, 5);
-    blit_rect(screen, frame, 0xff77ff77, PACK_XY(40, 50), 238, 5);
-    blit_rect(screen, frame, 0xff77ff77, PACK_XY(40, 55), 237, 5);
-    blit_rect(screen, frame, 0xff77ff77, PACK_XY(40, 60), 236, 5);
-    blit_rect(screen, frame, 0xff77ff77, PACK_XY(40, 65), 235, 5);
-    blit_rect(screen, frame, 0xff77ff77, PACK_XY(40, 70), 234, 5);
-    blit_rect(screen, frame, 0xff77ff77, PACK_XY(40, 75), 233, 5);
-    blit_rect(screen, frame, 0xff77ff77, PACK_XY(40, 80), 232, 5);
-    blit_rect(screen, frame, 0xff77ff77, PACK_XY(40, 85), 231, 5);
-    blit_rect(screen, frame, 0xff77ff77, PACK_XY(40, 90), 230, 5);
 
-    blit_rect(screen, frame, 0xff77ff77, PACK_XY(40, 100), 240, 5);
-    blit_rect(screen, frame, 0xff77ff77, PACK_XY(40, 105), 236, 5);
-    blit_rect(screen, frame, 0xff77ff77, PACK_XY(40, 110), 232, 5);
-    blit_rect(screen, frame, 0xff77ff77, PACK_XY(40, 115), 228, 5);
-    blit_rect(screen, frame, 0xff77ff77, PACK_XY(40, 120), 224, 5);
-    blit_rect(screen, frame, 0xff77ff77, PACK_XY(40, 125), 220, 5);
-    blit_rect(screen, frame, 0xff77ff77, PACK_XY(40, 130), 216, 5);
-    blit_rect(screen, frame, 0xff77ff77, PACK_XY(40, 135), 212, 5);
-    blit_rect(screen, frame, 0xff77ff77, PACK_XY(40, 140), 208, 5);
-    blit_rect(screen, frame, 0xff77ff77, PACK_XY(40, 145), 204, 5);
-    blit_rect(screen, frame, 0xff77ff77, PACK_XY(40, 150), 200, 5);
+    /* Draw the game grid in bright purple */
+    blit_rect(screen, frame, GRID_CLR, PACK_XY(GRID_START_X, GRID_START_Y + SHORT_MUL(0, GRID_SIZE_Y)), SHORT_MUL(6, GRID_SIZE_X), 1);
+    blit_rect(screen, frame, GRID_CLR, PACK_XY(GRID_START_X, GRID_START_Y + SHORT_MUL(1, GRID_SIZE_Y)), SHORT_MUL(6, GRID_SIZE_X), 1);
+    blit_rect(screen, frame, GRID_CLR, PACK_XY(GRID_START_X, GRID_START_Y + SHORT_MUL(2, GRID_SIZE_Y)), SHORT_MUL(6, GRID_SIZE_X), 1);
+    blit_rect(screen, frame, GRID_CLR, PACK_XY(GRID_START_X, GRID_START_Y + SHORT_MUL(3, GRID_SIZE_Y)), SHORT_MUL(6, GRID_SIZE_X), 1);
+    blit_rect(screen, frame, GRID_CLR, PACK_XY(GRID_START_X, GRID_START_Y + SHORT_MUL(4, GRID_SIZE_Y)), SHORT_MUL(6, GRID_SIZE_X), 1);
+    blit_rect(screen, frame, GRID_CLR, PACK_XY(GRID_START_X, GRID_START_Y + SHORT_MUL(5, GRID_SIZE_Y)), SHORT_MUL(6, GRID_SIZE_X), 1);
 
-    blit_rect(screen, frame, 0xff77ff77, PACK_XY(40, 160), 240, 5);
-    blit_rect(screen, frame, 0xff77ff77, PACK_XY(41, 165), 238, 5);
-    blit_rect(screen, frame, 0xff77ff77, PACK_XY(42, 170), 236, 5);
-    blit_rect(screen, frame, 0xff77ff77, PACK_XY(43, 175), 234, 5);
-    blit_rect(screen, frame, 0xff77ff77, PACK_XY(44, 180), 232, 5);
-    blit_rect(screen, frame, 0xff77ff77, PACK_XY(45, 185), 230, 5);
-    blit_rect(screen, frame, 0xff77ff77, PACK_XY(46, 190), 228, 5);
-    blit_rect(screen, frame, 0xff77ff77, PACK_XY(47, 195), 226, 5);
-    blit_rect(screen, frame, 0xff77ff77, PACK_XY(48, 200), 224, 5);
-    blit_rect(screen, frame, 0xff77ff77, PACK_XY(49, 205), 222, 5);
-    blit_rect(screen, frame, 0xff77ff77, PACK_XY(50, 210), 220, 5);
+    blit_rect(screen, frame, GRID_CLR, PACK_XY(GRID_START_X + SHORT_MUL(0, GRID_SIZE_X), GRID_START_Y), 1, SHORT_MUL(5, GRID_SIZE_Y));
+    blit_rect(screen, frame, GRID_CLR, PACK_XY(GRID_START_X + SHORT_MUL(1, GRID_SIZE_X), GRID_START_Y), 1, SHORT_MUL(5, GRID_SIZE_Y));
+    blit_rect(screen, frame, GRID_CLR, PACK_XY(GRID_START_X + SHORT_MUL(2, GRID_SIZE_X), GRID_START_Y), 1, SHORT_MUL(5, GRID_SIZE_Y));
+    blit_rect(screen, frame, GRID_CLR, PACK_XY(GRID_START_X + SHORT_MUL(3, GRID_SIZE_X), GRID_START_Y), 1, SHORT_MUL(5, GRID_SIZE_Y));
+    blit_rect(screen, frame, GRID_CLR, PACK_XY(GRID_START_X + SHORT_MUL(4, GRID_SIZE_X), GRID_START_Y), 1, SHORT_MUL(5, GRID_SIZE_Y));
+    blit_rect(screen, frame, GRID_CLR, PACK_XY(GRID_START_X + SHORT_MUL(5, GRID_SIZE_X), GRID_START_Y), 1, SHORT_MUL(5, GRID_SIZE_Y));
+    blit_rect(screen, frame, GRID_CLR, PACK_XY(GRID_START_X + SHORT_MUL(6, GRID_SIZE_X), GRID_START_Y), 1, SHORT_MUL(5, GRID_SIZE_Y) + 1);
+
+    /* Draw the score box in light blue */
+    blit_rect(screen, frame, SCORE_BOX_CLR, PACK_XY(GRID_START_X + 40, GRID_START_Y + SHORT_MUL(5, GRID_SIZE_Y) + 5), 60, 2);
+    blit_rect(screen, frame, SCORE_BOX_CLR, PACK_XY(GRID_START_X + 40, GRID_START_Y + SHORT_MUL(5, GRID_SIZE_Y) + 20), 60, 2);
+    blit_rect(screen, frame, SCORE_BOX_CLR, PACK_XY(GRID_START_X + 40, GRID_START_Y + SHORT_MUL(5, GRID_SIZE_Y) + 7), 2, 13);
+    blit_rect(screen, frame, SCORE_BOX_CLR, PACK_XY(GRID_START_X + 98, GRID_START_Y + SHORT_MUL(5, GRID_SIZE_Y) + 7), 2, 13);
+
+    /* Draw the level title borders in orange */
+    blit_rect(screen, frame, TITLE_BORDER_CLR, PACK_XY(GRID_START_X + 30, GRID_START_Y - 25), SHORT_MUL(6, GRID_SIZE_X) - 60, 2);
+    blit_rect(screen, frame, TITLE_BORDER_CLR, PACK_XY(GRID_START_X + 30, GRID_START_Y - 5), SHORT_MUL(6, GRID_SIZE_X) - 60, 2);
+
+    /* Wait for blitter to idle */
+    while ((*(volatile long *)B_CMD & 1) == 0);
+
+    draw_string(screen, frame, PACK_XY(GRID_START_X - 15, GRID_START_Y - 25), level_str);
+    draw_string(screen, frame, PACK_XY(GRID_START_X, GRID_START_Y - 15), levelnum_str);
+    draw_string(screen, frame, PACK_XY(GRID_START_X - 15, GRID_START_Y + SHORT_MUL(5, GRID_SIZE_Y) + 8), score_str);
+    draw_string(screen, frame, PACK_XY(GRID_START_X + 75, GRID_START_Y - 20), levelname_str);
 }
+
+static const unsigned int SCREEN_OFF_X = 16; /* Copied from InitLister logic, NTSC version for 320 x 240 bitmap */
+static const unsigned int SCREEN_OFF_Y = 13; /* Copied from InitLister logic, NTSC version for 320 x 240 bitmap */
 
 static void gpu_main(void)
 {
     unsigned int i;
     unsigned int oldTicks;
-    unsigned int color = 0x00ff00ff;
+    unsigned int bg_color = 0x0; /* Black */
     unsigned int oldPad1 = 0;
     unsigned int newPad1;
     unsigned int printDelay = 0;
     int newMusic = 0;
     Sprite *screen = &spriteData[0];
     Sprite *player = &spriteData[1];
-    unsigned int player_x = 32;
-    unsigned int player_y = 32;
+    unsigned int player_x = SCREEN_OFF_X + GRID_START_X;
+    unsigned int player_y = SCREEN_OFF_Y + GRID_START_Y;
     unsigned int sprite_frame = 1;
+    unsigned int draw_debug = 0;
     Animation *a, *aLocal;
 
     animations = NULL;
@@ -323,8 +352,8 @@ static void gpu_main(void)
                 SPRITE_DEPTH16,
                 SPRITE_SINGLE_BUFFERED | SPRITE_NOT_TRANSPARENT);
 
-    SET_SPRITE_X(screen, 16); /* Copied from InitLister logic, NTSC version for 320x240 bitmap */
-    SET_SPRITE_Y(screen, 13); /* Copied from InitLister logic, NTSC version for 320x240 bitmap */
+    SET_SPRITE_X(screen, SCREEN_OFF_X);
+    SET_SPRITE_Y(screen, SCREEN_OFF_Y);
 
     make_sprite(player,
                 playerbmp,
@@ -333,7 +362,10 @@ static void gpu_main(void)
                 SPRITE_DEPTH16,
                 SPRITE_SINGLE_BUFFERED | SPRITE_TRANSPARENT);
 
-    blit_rect(player, 0, 0xff00ff00, 0, PLAYER_WIDTH, PLAYER_HEIGHT);
+    SET_SPRITE_X(player, 16 + GRID_START_X);
+    SET_SPRITE_Y(player, 13 + GRID_START_Y);
+
+    blit_rect(player, 0, 0x1bff1bff, 0, PLAYER_WIDTH, PLAYER_HEIGHT);
 
     screen->next = player;
 
@@ -344,8 +376,8 @@ static void gpu_main(void)
      *   for (i = 0; i < 2; i++)
      * But that only iterates once because the compiler is buggy
      */
-    init_screen(screen, 0, color);
-    init_screen(screen, 1, color);
+    init_screen(screen, 0, bg_color);
+    init_screen(screen, 1, bg_color);
 
     /* Wait for blitter to idle */
     while ((*(volatile long *)B_CMD & 1) == 0);
@@ -358,13 +390,23 @@ static void gpu_main(void)
 
         sprite_frame = !sprite_frame;
 
-        blit_rect(screen, sprite_frame, color, PACK_XY(20, 10), 240, 30);
+        /* Clear text regions */
+        if (draw_debug) {
+            /* Debug text */
+            blit_rect(screen, sprite_frame, bg_color, PACK_XY(100, 210), 200, 20);
+        }
+
+        /* Score */
+        blit_rect(screen, sprite_frame, bg_color, PACK_XY(GRID_START_X + 42, GRID_START_Y + SHORT_MUL(5, PLAYER_HEIGHT) + 7), 56, 13);
 
         /* Wait for blitter to idle */
         while ((*(volatile long *)B_CMD & 1) == 0);
 
-        drawString(screen, sprite_frame, PACK_XY(20, 10), gpuStr);
-        drawString(screen, sprite_frame, PACK_XY(20, 20), dspStr);
+        if (draw_debug) {
+            draw_string(screen, sprite_frame, PACK_XY(100, 210), gpu_str);
+            draw_string(screen, sprite_frame, PACK_XY(100, 220), dsp_str);
+        }
+        draw_string(screen, sprite_frame, PACK_XY(GRID_START_X + 45, GRID_START_Y + SHORT_MUL(5, GRID_SIZE_Y) + 8), scoreval_str);
 
         set_sprite_frame(screen, sprite_frame);
 
@@ -373,6 +415,19 @@ static void gpu_main(void)
         newPad1 = *u235se_pad1;
 
         if (((oldPad1 ^ newPad1) & newPad1) & U235SE_BUT_B) {
+            score += 5;
+            update_score_gpu();
+        }
+
+        if (((oldPad1 ^ newPad1) & newPad1) & U235SE_BUT_A) {
+            if (screen->next) {
+                screen->next = NULL;
+            } else {
+                screen->next = player;
+            }
+        }
+
+        if (((oldPad1 ^ newPad1) & newPad1) & U235SE_BUT_C) {
             if (!newMusic) {
                 ChangeMusicGPU(mus_main);
                 newMusic = 1;
@@ -382,12 +437,8 @@ static void gpu_main(void)
             }
         }
 
-        if (((oldPad1 ^ newPad1) & newPad1) & U235SE_BUT_A) {
-            if (screen->next) {
-                screen->next = NULL;
-            } else {
-                screen->next = player;
-            }
+        if (((oldPad1 ^ newPad1) & newPad1) & U235SE_BUT_0) {
+            draw_debug ^= 1;
         }
 
         a = NULL;
@@ -399,22 +450,22 @@ static void gpu_main(void)
         aLocal = animations;
         if (newPad1 & U235SE_BUT_UP) {
             if (!aLocal) {
-                player_y -= GRID_SIZE;
+                player_y -= GRID_SIZE_Y;
                 a = &animationData[0];
             }
         } else if (newPad1 & U235SE_BUT_DOWN) {
             if (!aLocal) {
-                player_y += GRID_SIZE;
+                player_y += GRID_SIZE_Y;
                 a = &animationData[0];
             }
         } else if (newPad1 & U235SE_BUT_LEFT) {
             if (!aLocal) {
-                player_x -= GRID_SIZE;
+                player_x -= GRID_SIZE_X;
                 a = &animationData[0];
             }
         } else if (newPad1 & U235SE_BUT_RIGHT) {
             if (!aLocal) {
-                player_x += GRID_SIZE;
+                player_x += GRID_SIZE_X;
                 a = &animationData[0];
             }
         }

@@ -15,6 +15,10 @@
 volatile unsigned long spinCount;
 volatile unsigned long blitCount;
 
+volatile unsigned long score;
+
+static unsigned long level_num;
+
 Animation animationData[4];
 Animation *animations;
 
@@ -50,11 +54,16 @@ static void blitToGpu(void *dst, void *src, unsigned long size)
 
 void printStats(void)
 {
-    sprintf(gpuStr, "GPU $%08lx $%08lx $%08lx",
+    sprintf(gpu_str, "GPU $%08lx $%08lx $%08lx",
             *(volatile long *)G_PC, *(volatile long *)G_FLAGS, *(volatile long *)G_CTRL);
-    sprintf(dspStr, "DSP $%08lx $%08lx $%08lx",
+    sprintf(dsp_str, "DSP $%08lx $%08lx $%08lx",
             *(volatile long *)D_PC, *(volatile long *)D_FLAGS, *(volatile long *)D_CTRL);
-    printf("%s\n%s\n", gpuStr, dspStr);
+    printf("%s\n%s\n", gpu_str, dsp_str);
+}
+
+void updateScore(void)
+{
+    sprintf(scoreval_str, "%u", score);
 }
 
 int start()
@@ -63,16 +72,21 @@ int start()
 	volatile	long	*ctrl=(void *)G_CTRL;
     long unsigned musicAddr;
 
-    spinCount = blitCount = 0;
-    gpuStr[0] = 'G';
-    gpuStr[1] = 'P';
-    gpuStr[2] = 'U';
-    gpuStr[3] = '\0';
+    level_num = 1;
+    score = 0;
 
-    dspStr[0] = 'D';
-    dspStr[1] = 'S';
-    dspStr[2] = 'P';
-    dspStr[3] = '\0';
+    updateScore();
+
+    spinCount = blitCount = 0;
+    gpu_str[0] = 'G';
+    gpu_str[1] = 'P';
+    gpu_str[2] = 'U';
+    gpu_str[3] = '\0';
+
+    dsp_str[0] = 'D';
+    dsp_str[1] = 'S';
+    dsp_str[2] = 'P';
+    dsp_str[3] = '\0';
 
 #if defined(USE_SKUNK)
 	skunkRESET();
@@ -85,6 +99,9 @@ int start()
     blitToGpu(G_RAM, gpugame_start, (long)gpugame_size);
     blitToGpu(gpuasm_dst, gpuasm_start, (long)gpuasm_size);
     printf("Done blitting GPU code\n");
+
+    sprintf(levelnum_str, "%u", level_num);
+    sprintf(levelname_str, "Multiples of %u", level_num + 1);
 
     *pc = (unsigned long)&gpu_start;
     *ctrl = GPUGO;

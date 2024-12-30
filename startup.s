@@ -81,12 +81,18 @@ PLAYER_HEIGHT	.equ	64
 		.globl  height
 		.globl	_ChangeMusic
 		.globl	_stop68k
-		.globl	_gpuStr
-		.globl	_dspStr
+		.globl	_gpu_str
+		.globl	_dsp_str
+		.globl	_level_str
+		.globl	_levelnum_str
+		.globl	_levelname_str
+		.globl	_score_str
+		.globl	_scoreval_str
 		.globl	_spriteData
 ; Externals
 		.extern	_start
 		.extern _printStats
+		.extern _updateScore
 		.extern _cpuCmd;
 		.extern _cpuData;
 
@@ -125,7 +131,7 @@ waitforset:
 		andi.l  #$1,d0
 		bne 	waitforset
 
-		move.w  #$6C7,VMODE     	; Configure Video
+		move.w  #$6C1,VMODE     	; Configure Video
 
 	     	jmp 	_start			; Jump to main code
 
@@ -469,6 +475,7 @@ HandleGpu:
 		HANDLE_CPUCMD 1, _printStats
 		HANDLE_CPUCMD 2, _ChangeMusic, d1
 		HANDLE_CPUCMD 3, SetSpriteList
+		HANDLE_CPUCMD 4, _updateScore
 
 		movem.l	(sp)+, d0-d1/a0-a1
 		rts
@@ -569,6 +576,8 @@ stopmuscmds:	.dc.l	$01
 		.dc.l	$21
 		.dc.l	$31
 		.dc.l	$0
+_score_str:	.dc.b	'Score:',0
+_level_str:	.dc.b	'Level:',0
 
 		.bss
 		.dphrase
@@ -586,8 +595,11 @@ height:     	.ds.w   1
 		.long
 spriteList:	.ds.l	1
 _spriteData:	.ds.l	40*MAX_SPRITES		; MAX_SPRITES * sizeof(Sprite)
-_gpuStr:	.ds.b	128
-_dspStr:	.ds.b	128
+_gpu_str:	.ds.b	128
+_dsp_str:	.ds.b	128
+_levelnum_str:	.ds.b	8
+_levelname_str:	.ds.b	64
+_scoreval_str:	.ds.b	16
 
 		.phrase
 _screenbmp:	.ds.l	BMP_WIDTH*BMP_HEIGHT*(PPP>>1)*2

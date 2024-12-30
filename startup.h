@@ -4,8 +4,13 @@
 extern volatile unsigned long ticks;
 extern unsigned char screenbmp[];
 extern unsigned char playerbmp[];
-extern char gpuStr[];
-extern char dspStr[];
+extern char gpu_str[];
+extern char dsp_str[];
+extern char level_str[];
+extern char levelnum_str[];
+extern char levelname_str[];
+extern char score_str[];
+extern char scoreval_str[];
 
 /* XXX Should be shared with startup.s */
 #define PPP 4
@@ -14,8 +19,8 @@ extern char dspStr[];
 #define BMP_PHRASES (BMP_WIDTH/PPP)
 #define BMP_LINES (BMP_HEIGHT*2)
 
-#define PLAYER_WIDTH 64
-#define PLAYER_HEIGHT 64
+#define PLAYER_WIDTH 40
+#define PLAYER_HEIGHT 32
 
 extern long unsigned ChangeMusic(void *modFilePtr);
 extern void printStats(void);

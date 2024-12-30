@@ -3,7 +3,7 @@
 
 GPUCODE_OFFSET	.equ	(GPUGAME_CODESIZE + 7) & ~7	; Phrase-align this file's code
 
-		.globl	_drawStringOff
+		.globl	_draw_string_off
 		.globl	_gpuasm_start
 		.globl	_gpuasm_end
 		.globl	_gpuasm_size
@@ -27,7 +27,8 @@ FNTFIRSTCHR	.equ	$20
 FNTLASTCHR	.equ	$7f
 zeror		.equr	r6
 
-_drawStringOff:	; Write a NUL-terminated string to a surface
+_draw_string_off:
+		; Write a NUL-terminated string to a surface
 		;  r0 = sprite:      The sprite surface to draw to
 		;  r1 = coords:      The packed coordinates (y<<16)|x
 		;  r2 = stringaddr:  Pointer to the NUL-terminated string
@@ -41,7 +42,7 @@ _drawStringOff:	; Write a NUL-terminated string to a surface
 
 		load	(r14+8), r0			; Get surface address in r0
 
-		movei	#$ffffffff, r4
+		movei	#$88ff88ff, r4
 
 		add	r3, r0				; Add frame offset into r0
 
