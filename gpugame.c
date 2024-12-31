@@ -11,6 +11,9 @@
 #define GRID_SIZE_X (PLAYER_WIDTH)
 #define GRID_SIZE_Y (PLAYER_HEIGHT)
 
+#define GRID_MAX_X (5)
+#define GRID_MAX_Y (4)
+
 volatile unsigned long cpuCmd;
 void *volatile cpuData;
 
@@ -326,6 +329,11 @@ static void init_screen(Sprite *screen, unsigned int frame, unsigned int color)
 static const unsigned int SCREEN_OFF_X = 16; /* Copied from InitLister logic, NTSC version for 320 x 240 bitmap */
 static const unsigned int SCREEN_OFF_Y = 13; /* Copied from InitLister logic, NTSC version for 320 x 240 bitmap */
 
+static void myclamp(int *val, int min, int max) {
+    if (*val < min) *val = min;
+    if (*val > max) *val = max;
+}
+
 static void gpu_main(void)
 {
     unsigned int i;
@@ -337,8 +345,8 @@ static void gpu_main(void)
     int newMusic = 0;
     Sprite *screen = &spriteData[0];
     Sprite *player = &spriteData[1];
-    unsigned int player_x = SCREEN_OFF_X + GRID_START_X;
-    unsigned int player_y = SCREEN_OFF_Y + GRID_START_Y;
+    int player_x = 0;
+    int player_y = 0;
     unsigned int sprite_frame = 1;
     unsigned int draw_debug = 0;
     Animation *a, *aLocal;
@@ -450,30 +458,33 @@ static void gpu_main(void)
         aLocal = animations;
         if (newPad1 & U235SE_BUT_UP) {
             if (!aLocal) {
-                player_y -= GRID_SIZE_Y;
+                player_y -= 1;
                 a = &animationData[0];
             }
         } else if (newPad1 & U235SE_BUT_DOWN) {
             if (!aLocal) {
-                player_y += GRID_SIZE_Y;
+                player_y += 1;
                 a = &animationData[0];
             }
         } else if (newPad1 & U235SE_BUT_LEFT) {
             if (!aLocal) {
-                player_x -= GRID_SIZE_X;
+                player_x -= 1;
                 a = &animationData[0];
             }
         } else if (newPad1 & U235SE_BUT_RIGHT) {
             if (!aLocal) {
-                player_x += GRID_SIZE_X;
+                player_x += 1;
                 a = &animationData[0];
             }
         }
 
+        myclamp(&player_x, 0, GRID_MAX_X);
+        myclamp(&player_y, 0, GRID_MAX_Y);
+
         if (a) {
             a->sprite = player;
-            a->endX = player_x;
-            a->endY = player_y;
+            a->endX = SCREEN_OFF_X + GRID_START_X + SHORT_MUL(player_x, GRID_SIZE_X);
+            a->endY = SCREEN_OFF_Y + GRID_START_Y + SHORT_MUL(player_y, GRID_SIZE_Y);
             a->speedPerTick = 4;
             a->next = animations;
             animations = a;
