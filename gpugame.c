@@ -283,10 +283,27 @@ static const unsigned int GRID_START_Y = 40;
 #define SCORE_BOX_CLR           0x1bff1bff
 #define TITLE_BORDER_CLR        0xf7d6f7d6
 
+static void pick_numbers(const unsigned long *val_array, unsigned int multiple_of)
+{
+    int i;
+    int j;
+    unsigned int val;
+
+    for (i = 0; i < 5; i++) {
+        for (j = 0; j < 6; j++) {
+            val = get_rand_entry(val_array);
+
+            square_data[i][j].val = val;
+            square_data[i][j].is_multiple = ((val % multiple_of) == 0);
+        }
+    }
+}
+
 static void init_screen(Sprite *screen, unsigned int frame, unsigned int color)
 {
     volatile int a;
     volatile int b = 234;
+    unsigned int val;
 
     /* Clear to backgroud color */
     blit_color(screen, frame, color);
@@ -379,6 +396,8 @@ static void gpu_main(void)
 
     SetSpriteList(screen);
 
+    pick_numbers(m2_vals, 2);
+
     /*
      * Should be:
      *   for (i = 0; i < 2; i++)
@@ -449,13 +468,21 @@ static void gpu_main(void)
             draw_debug ^= 1;
         }
 
+        if (((oldPad1 ^ newPad1) & newPad1) & U235SE_BUT_1) {
+            score = get_rand_entry(m2_vals);
+            update_score_gpu();
+        }
+
+
         a = NULL;
+
         /*
          * Work around compiler bug. It acts as if loading "animations" into a
          * register will set the flags, and seems to do a cmpq 0, reg based on
          * it, but loads do not set flags on JRISC
          */
         aLocal = animations;
+
         if (newPad1 & U235SE_BUT_UP) {
             if (!aLocal) {
                 player_y -= 1;

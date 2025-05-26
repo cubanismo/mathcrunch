@@ -28,6 +28,8 @@ unsigned long count;
 static u8 GD_Bios[1024 * 4];
 #endif
 
+SquareData square_data[5][6];
+
 static void blitToGpu(void *dst, void *src, unsigned long size)
 {
     printf("Blitting GPU code from 0x%08x size 0x%08x to 0x%08x\n", (long)src, size, (long)dst);

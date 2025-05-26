@@ -11,12 +11,21 @@ enum CpuCommands {
     CPUCMD_INVALID = 0xFFFFFFFF
 };
 
-extern volatile unsigned long cpuCmd;
-extern void *volatile cpuData;
+typedef struct {
+    unsigned long val;
+    unsigned long is_multiple;
+} SquareData;
 
+/* main.c */
 extern volatile unsigned long spinCount;
 extern volatile unsigned long blitCount;
 extern volatile unsigned long score;
+extern SquareData square_data[5][6];
+
+/* gpugame.c */
+extern volatile unsigned long cpuCmd;
+extern void *volatile cpuData;
+
 extern unsigned long gpugame_start[];
 extern unsigned long gpugame_end[];
 extern unsigned long gpugame_size[];

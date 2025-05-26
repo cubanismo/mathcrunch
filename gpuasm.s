@@ -1,4 +1,5 @@
 		.include "jaguar.inc"
+		.include "u235se/u235se.inc"
 		.include "g_gpugame_codesize.inc"
 
 GPUCODE_OFFSET	.equ	(GPUGAME_CODESIZE + 7) & ~7	; Phrase-align this file's code
@@ -9,6 +10,7 @@ GPUCODE_OFFSET	.equ	(GPUGAME_CODESIZE + 7) & ~7	; Phrase-align this file's code
 		.globl	_gpuasm_size
 		.globl	_gpuasm_dst
 		.globl	_update_animations
+		.globl	_get_rand_entry
 
 		.extern	_animations
 
@@ -314,6 +316,18 @@ try_next:
 	move	r2,r14			; r14 = a
 
 done:
+	load	(r31),r16		; RTS
+	jump	T,(r16)
+	addqt	#4,r31
+
+_get_rand_entry:
+	move	r0, r14
+	movei	#U235SE_rng, r7
+	load	(r7), r8
+	movei	#$fc, r6
+	and	r6, r8
+	load	(r14+r8), r0
+
 	load	(r31),r16		; RTS
 	jump	T,(r16)
 	addqt	#4,r31

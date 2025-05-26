@@ -72,6 +72,7 @@ PLAYER_HEIGHT	.equ	64
 		.globl	_ticks
 		.globl	_screenbmp
 		.globl	_playerbmp
+		.globl	_m2_vals
 
 		.globl  a_vdb
 		.globl  a_vde
@@ -579,6 +580,9 @@ stopmuscmds:	.dc.l	$01
 		.dc.l	$0
 _score_str:	.dc.b	'Score:',0
 _level_str:	.dc.b	'Level:',0
+
+		.long
+_m2_vals:	.dc.l	2,4,6,8,10,12,14,16,18,20,1,3,5,7,9,11,13,15,17,19,2,4,6,8,10,12,14,16,18,20,1,3,5,7,9,11,13,15,17,19,2,4,6,8,10,12,14,16,18,20,1,3,5,7,9,11,13,15,17,19,2,4,1,3
 
 		.bss
 		.dphrase

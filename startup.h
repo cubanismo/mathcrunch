@@ -11,6 +11,7 @@ extern char levelnum_str[];
 extern char levelname_str[];
 extern char score_str[];
 extern char scoreval_str[];
+extern unsigned long m2_vals[];
 
 /* XXX Should be shared with startup.s */
 #define PPP 4
