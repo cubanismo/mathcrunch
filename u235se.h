@@ -1,8 +1,8 @@
 #ifndef U235SE_H_
 #define U235SE_H_
 
-extern unsigned long int *u235se_pad1;
-extern unsigned long int *u235se_pad2;
+extern volatile unsigned long int *u235se_pad1;
+extern volatile unsigned long int *u235se_pad2;
 
 /* Bit numbers for buttons in the mask for testing individual bits */
 #define U235SE_BBUT_UP      0
