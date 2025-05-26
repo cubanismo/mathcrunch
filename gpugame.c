@@ -312,20 +312,13 @@ static void init_screen(Sprite *screen, unsigned int frame, unsigned int color)
     blit_color(screen, frame, color);
 
     /* Draw the game grid in bright purple */
-    blit_rect(screen, frame, GRID_CLR, PACK_XY(GRID_START_X, GRID_START_Y + SHORT_MUL(0, GRID_SIZE_Y)), SHORT_MUL(6, GRID_SIZE_X), 1);
-    blit_rect(screen, frame, GRID_CLR, PACK_XY(GRID_START_X, GRID_START_Y + SHORT_MUL(1, GRID_SIZE_Y)), SHORT_MUL(6, GRID_SIZE_X), 1);
-    blit_rect(screen, frame, GRID_CLR, PACK_XY(GRID_START_X, GRID_START_Y + SHORT_MUL(2, GRID_SIZE_Y)), SHORT_MUL(6, GRID_SIZE_X), 1);
-    blit_rect(screen, frame, GRID_CLR, PACK_XY(GRID_START_X, GRID_START_Y + SHORT_MUL(3, GRID_SIZE_Y)), SHORT_MUL(6, GRID_SIZE_X), 1);
-    blit_rect(screen, frame, GRID_CLR, PACK_XY(GRID_START_X, GRID_START_Y + SHORT_MUL(4, GRID_SIZE_Y)), SHORT_MUL(6, GRID_SIZE_X), 1);
-    blit_rect(screen, frame, GRID_CLR, PACK_XY(GRID_START_X, GRID_START_Y + SHORT_MUL(5, GRID_SIZE_Y)), SHORT_MUL(6, GRID_SIZE_X), 1);
+    for (j = 0; j < 7 /* XXX Should be 6. Compiler bug. */; j++) {
+        blit_rect(screen, frame, GRID_CLR, PACK_XY(GRID_START_X, GRID_START_Y + SHORT_MUL(j, GRID_SIZE_Y)), SHORT_MUL(6, GRID_SIZE_X), 1);
+    }
 
-    blit_rect(screen, frame, GRID_CLR, PACK_XY(GRID_START_X + SHORT_MUL(0, GRID_SIZE_X), GRID_START_Y), 1, SHORT_MUL(5, GRID_SIZE_Y));
-    blit_rect(screen, frame, GRID_CLR, PACK_XY(GRID_START_X + SHORT_MUL(1, GRID_SIZE_X), GRID_START_Y), 1, SHORT_MUL(5, GRID_SIZE_Y));
-    blit_rect(screen, frame, GRID_CLR, PACK_XY(GRID_START_X + SHORT_MUL(2, GRID_SIZE_X), GRID_START_Y), 1, SHORT_MUL(5, GRID_SIZE_Y));
-    blit_rect(screen, frame, GRID_CLR, PACK_XY(GRID_START_X + SHORT_MUL(3, GRID_SIZE_X), GRID_START_Y), 1, SHORT_MUL(5, GRID_SIZE_Y));
-    blit_rect(screen, frame, GRID_CLR, PACK_XY(GRID_START_X + SHORT_MUL(4, GRID_SIZE_X), GRID_START_Y), 1, SHORT_MUL(5, GRID_SIZE_Y));
-    blit_rect(screen, frame, GRID_CLR, PACK_XY(GRID_START_X + SHORT_MUL(5, GRID_SIZE_X), GRID_START_Y), 1, SHORT_MUL(5, GRID_SIZE_Y));
-    blit_rect(screen, frame, GRID_CLR, PACK_XY(GRID_START_X + SHORT_MUL(6, GRID_SIZE_X), GRID_START_Y), 1, SHORT_MUL(5, GRID_SIZE_Y) + 1);
+    for (i = 0; i < 8 /* XXX Should be 7. Compiler bug. */; i++) {
+        blit_rect(screen, frame, GRID_CLR, PACK_XY(GRID_START_X + SHORT_MUL(i, GRID_SIZE_X), GRID_START_Y), 1, SHORT_MUL(5, GRID_SIZE_Y));
+    }
 
     /* Draw the score box in light blue */
     blit_rect(screen, frame, SCORE_BOX_CLR, PACK_XY(GRID_START_X + 40, GRID_START_Y + SHORT_MUL(5, GRID_SIZE_Y) + 5), 60, 2);
