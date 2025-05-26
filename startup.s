@@ -260,14 +260,17 @@ calc_vals:
 ;
 InitU235se:
 		movem.l	d0/a0-a1,-(sp)
+		move.w	CONFIG, d0
+		andi.w	#VIDTYPE, d0
+		beq	.palsound
 
-.extern dspcode
-		move.w	#2047, d0
-		lea	dspcode, a0
-		move.l	#D_RAM, a1
+		jsr	U235SE_initNTSC
+		bra	.soundidone
 
-.sndloadloop:	move.l	(a0)+, (a1)+
-		dbra.w	d0, .sndloadloop
+.palsound:
+		jsr	U235SE_initPAL
+
+.soundidone:
 
 		move.l	#U235SE_24KHZ, U235SE_playback_rate
 		move.l	#U235SE_24KHZ_PERIOD, U235SE_playback_period
@@ -284,8 +287,6 @@ InitU235se:
 ; C-callable function to change the mod file u235se is playing
 ;
 _ChangeMusic:
-		move.l	4(sp), U235SE_moduleaddr
-
 		movem.l	d1-d7/a0-a6,-(sp)
 
 		move.l	#U235SE_NOMOD, U235SE_playmod
@@ -294,16 +295,16 @@ _ChangeMusic:
 		tst.l	U235SE_sfxplaylist_ptr
 		bne	.waitsilence
 
-		tst.l	U235SE_moduleaddr
+		move.l	60(sp), a0
+		cmp.l	#0, a0
 		beq	.donechg
 
-		;jsr	U235SE_modinit
-		jsr	modinit
+		jsr	U235SE_modinit
 		move.l	#48, U235SE_music_vol	; Set volume to 48/63
 		move.l	#U235SE_PLAYMONO, U235SE_playmod
 
 .donechg:
-		move.l	U235SE_moduleaddr, d0
+		move.l	a0, d0
 		movem.l	(sp)+,d1-d7/a0-a6
 		rts
 
