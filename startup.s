@@ -93,9 +93,10 @@ PLAYER_HEIGHT	.equ	64
 ; Externals
 		.extern	_start
 		.extern _printStats
-		.extern _updateScore
+		.extern _intToStr
 		.extern _cpuCmd;
-		.extern _cpuData;
+		.extern _cpuData0;
+		.extern _cpuData1;
 
 MAX_SPRITES	.equ	4			; 3 characters + the screen
 BMP_PHRASES 	.equ    (BMP_WIDTH/PPP) 	; Width in Phrases
@@ -448,14 +449,20 @@ HandleInt:
 ;   func:     The function to call for this command
 ;   regParam: If the function takes a stack parameter, set this to d1
 ;
-.macro HANDLE_CPUCMD cmdNum, func, regParam
+.macro HANDLE_CPUCMD cmdNum, func, regPar0, regPar1
 		cmp.l	#\cmdNum, d0
 		bne.s	.no\~
+.if \# > 3
+		move.l	\regPar1, -(sp)
+.endif
 .if \# > 2
-		move.l	\regParam, -(sp)
+		move.l	\regPar0, -(sp)
 .endif
 		jsr	\func
 .if \# > 2
+		addq.l	#4, sp
+.endif
+.if \# > 3
 		addq.l	#4, sp
 .endif
 		moveq.l	#0, d0
@@ -469,17 +476,18 @@ HandleInt:
 ;      Dispatch a command from the the GPU on the 68k
 ;
 HandleGpu:
-		movem.l	d0-d1/a0-a1, -(sp)
+		movem.l	d0-d2/a0-a1, -(sp)
 
 		move.l	_cpuCmd, d0
-		move.l	_cpuData, d1
+		move.l	_cpuData0, d1
+		move.l	_cpuData1, d2
 
 		HANDLE_CPUCMD 1, _printStats
 		HANDLE_CPUCMD 2, _ChangeMusic, d1
 		HANDLE_CPUCMD 3, SetSpriteList
-		HANDLE_CPUCMD 4, _updateScore
+		HANDLE_CPUCMD 4, _intToStr, d1, d2
 
-		movem.l	(sp)+, d0-d1/a0-a1
+		movem.l	(sp)+, d0-d2/a0-a1
 		rts
 
 

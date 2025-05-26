@@ -29,6 +29,7 @@ static u8 GD_Bios[1024 * 4];
 #endif
 
 SquareData square_data[5][6];
+char tmp_str[4] = "24";
 
 static void blitToGpu(void *dst, void *src, unsigned long size)
 {
@@ -63,9 +64,10 @@ void printStats(void)
     printf("%s\n%s\n", gpu_str, dsp_str);
 }
 
-void updateScore(void)
+void intToStr(char *str, unsigned long int val)
 {
-    sprintf(scoreval_str, "%u", score);
+    printf("0x%08x will get %lu written to it\n", (unsigned long)str, val);
+    sprintf(str, "%u", val);
 }
 
 int start()
@@ -76,8 +78,6 @@ int start()
 
     level_num = 1;
     score = 0;
-
-    updateScore();
 
     spinCount = blitCount = 0;
     gpu_str[0] = 'G';
@@ -97,6 +97,8 @@ int start()
 #elif defined(USE_GD)
     GD_Install(GD_Bios);
 #endif
+
+    intToStr(scoreval_str, score);
 
     blitToGpu(G_RAM, gpugame_start, (long)gpugame_size);
     blitToGpu(gpuasm_dst, gpuasm_start, (long)gpuasm_size);

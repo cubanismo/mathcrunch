@@ -15,7 +15,8 @@
 #define GRID_MAX_Y (4)
 
 volatile unsigned long cpuCmd;
-void *volatile cpuData;
+void *volatile cpuData0;
+void *volatile cpuData1;
 
 static void gpu_main(void);
 
@@ -26,7 +27,7 @@ void gpu_start(void)
 {
     /* Stuff that the C startup code would normally do */
     cpuCmd = CPUCMD_IDLE;
-    cpuData = 0;
+    cpuData0 = 0;
 
     gpu_main();
 }
@@ -131,7 +132,7 @@ static void run68kCmd(void)
 
 static void ChangeMusicGPU(void *music)
 {
-    cpuData = music;
+    cpuData0 = music;
     cpuCmd = CPUCMD_CHANGE_MUSIC;
 
     run68kCmd();
@@ -139,15 +140,17 @@ static void ChangeMusicGPU(void *music)
 
 static void SetSpriteList(Sprite *list)
 {
-    cpuData = list;
+    cpuData0 = list;
     cpuCmd = CPUCMD_SET_SPRITE_LIST;
 
     run68kCmd();
 }
 
-static void update_score_gpu(void)
+static void int_to_str_gpu(char *str, unsigned int val)
 {
-    cpuCmd = CPUCMD_UPDATE_SCORE;
+    cpuData0 = str;
+    cpuData1 = (void *)val;
+    cpuCmd = CPUCMD_INT_TO_STR;
 
     run68kCmd();
 }
@@ -301,8 +304,8 @@ static void pick_numbers(const unsigned long *val_array, unsigned int multiple_o
 
 static void init_screen(Sprite *screen, unsigned int frame, unsigned int color)
 {
-    volatile int a;
-    volatile int b = 234;
+    unsigned int i;
+    unsigned int j;
     unsigned int val;
 
     /* Clear to backgroud color */
@@ -341,6 +344,16 @@ static void init_screen(Sprite *screen, unsigned int frame, unsigned int color)
     draw_string(screen, frame, PACK_XY(GRID_START_X, GRID_START_Y - 15), levelnum_str);
     draw_string(screen, frame, PACK_XY(GRID_START_X - 15, GRID_START_Y + SHORT_MUL(5, GRID_SIZE_Y) + 8), score_str);
     draw_string(screen, frame, PACK_XY(GRID_START_X + 75, GRID_START_Y - 20), levelname_str);
+
+    for (i = 0; i < 7 /* XXX Should be 6. Compiler bug. */; i++) {
+        for (j = 0; j < 6 /* XXX Should be 5. Compiler bug. */; j++) {
+            val = square_data[i][j].val;
+            /* int_to_str_gpu(tmp_str, val); */
+            draw_string(screen, frame,
+                        PACK_XY(GRID_START_X + SHORT_MUL(i, GRID_SIZE_X) + 5,
+                                GRID_START_Y + SHORT_MUL(j, GRID_SIZE_Y) + 5), tmp_str);
+        }
+    }
 }
 
 static const unsigned int SCREEN_OFF_X = 16; /* Copied from InitLister logic, NTSC version for 320 x 240 bitmap */
@@ -443,7 +456,7 @@ static void gpu_main(void)
 
         if (((oldPad1 ^ newPad1) & newPad1) & U235SE_BUT_B) {
             score += 5;
-            update_score_gpu();
+            int_to_str_gpu(scoreval_str, score);
         }
 
         if (((oldPad1 ^ newPad1) & newPad1) & U235SE_BUT_A) {
@@ -470,7 +483,7 @@ static void gpu_main(void)
 
         if (((oldPad1 ^ newPad1) & newPad1) & U235SE_BUT_1) {
             score = get_rand_entry(m2_vals);
-            update_score_gpu();
+            int_to_str_gpu(scoreval_str, score);
         }
 
 

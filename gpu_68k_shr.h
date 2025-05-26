@@ -6,7 +6,7 @@ enum CpuCommands {
     CPUCMD_PRINT_STATS,
     CPUCMD_CHANGE_MUSIC,
     CPUCMD_SET_SPRITE_LIST,
-    CPUCMD_UPDATE_SCORE,
+    CPUCMD_INT_TO_STR,
 
     CPUCMD_INVALID = 0xFFFFFFFF
 };
@@ -21,10 +21,12 @@ extern volatile unsigned long spinCount;
 extern volatile unsigned long blitCount;
 extern volatile unsigned long score;
 extern SquareData square_data[5][6];
+extern char tmp_str[];
 
 /* gpugame.c */
 extern volatile unsigned long cpuCmd;
-extern void *volatile cpuData;
+extern void *volatile cpuData0;
+extern void *volatile cpuData1;
 
 extern unsigned long gpugame_start[];
 extern unsigned long gpugame_end[];
