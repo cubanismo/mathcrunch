@@ -448,8 +448,10 @@ static void gpu_main(void)
         newPad1 = *u235se_pad1;
 
         if (((oldPad1 ^ newPad1) & newPad1) & U235SE_BUT_B) {
-            score += 5;
-            int_to_str_gpu(scoreval_str, score);
+            if (square_data[player_y][player_x].is_multiple) {
+                score += 5;
+                int_to_str_gpu(scoreval_str, score);
+            }
         }
 
         if (((oldPad1 ^ newPad1) & newPad1) & U235SE_BUT_A) {
