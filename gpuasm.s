@@ -19,6 +19,11 @@ GPUCODE_OFFSET	.equ	(GPUGAME_CODESIZE + 7) & ~7	; Phrase-align this file's code
 _gpuasm_start:
 		.gpu
 		.org	(G_RAM + GPUCODE_OFFSET)
+
+;ST		.regequ	r18 ; June 1995 compiler build
+ST		.regequ	r31 ; February 1995 compiler build
+TMP		.regequ	r16
+
 _gpuasm_dst:
 
 ; These are all hard-coded from the clr6x12.jft font for now.
@@ -147,9 +152,9 @@ _draw_string_off:
 		nop					; Don't signal completion while spinning
 
 .done:		; Return to the caller.
-		load	(r31),r16
-		jump	(r16)
-		addqt	#4,r31	;rts
+		load	(ST),TMP
+		jump	(TMP)
+		addqt	#4,ST	;rts
 
 ; This function is a manually-commented version of the Linux gcc263 compiler
 ; output given the following C code:
@@ -316,9 +321,9 @@ try_next:
 	move	r2,r14			; r14 = a
 
 done:
-	load	(r31),r16		; RTS
-	jump	T,(r16)
-	addqt	#4,r31
+	load	(ST),TMP		; RTS
+	jump	T,(TMP)
+	addqt	#4,ST
 
 _get_rand_entry:
 	move	r0, r14
@@ -328,9 +333,9 @@ _get_rand_entry:
 	and	r6, r8
 	load	(r14+r8), r0
 
-	load	(r31),r16		; RTS
-	jump	T,(r16)
-	addqt	#4,r31
+	load	(ST),TMP		; RTS
+	jump	T,(TMP)
+	addqt	#4,ST
 
 		.long
 
