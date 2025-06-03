@@ -11,8 +11,10 @@ GPUCODE_OFFSET	.equ	(GPUGAME_CODESIZE + 7) & ~7	; Phrase-align this file's code
 		.globl	_gpuasm_dst
 		.globl	_update_animations
 		.globl	_get_rand_entry
+		.globl	_pick_numbers
 
 		.extern	_animations
+		.extern	_square_data
 
 		.text
 		.dphrase
@@ -336,6 +338,110 @@ _get_rand_entry:
 	load	(ST),TMP		; RTS
 	jump	T,(TMP)
 	addqt	#4,ST
+
+; Generate the numbers that will populate the game grid. This is a more or less
+; completely hand-coded implementation of this C code:
+;
+;   static void pick_numbers(const unsigned long *val_array, unsigned int multiple_of)
+;   {
+;       int i;
+;       int j;
+;       unsigned int val;
+;
+;       for (i = 0; i < 5; i++) {
+;           for (j = 0; j < 6; j++) {
+;               val = get_rand_entry(val_array);
+;
+;               square_data[i][j].val = val;
+;               square_data[i][j].is_multiple = ((val % multiple_of) == 0);
+;           }
+;       }
+;   }
+;
+; Because the compiler's output was broken and too hard to understand for me to
+; be able to make targeted fixes like the case above.
+_pick_numbers:
+	subqt	#32,ST
+	subqt	#4,ST
+	move	ST,r14
+
+	store	r19,(ST)
+	store	r20,(r14+1)
+	store	r21,(r14+2)
+	store	r22,(r14+3)
+	store	r23,(r14+4)
+	store	r24,(r14+5)
+	store	r25,(r14+6)
+	store	r26,(r14+7)
+	store	r27,(r14+8)
+
+	move	r0,r24	; r24 = val_array
+	move	r1,r25	; r25 = multiple_of
+	moveq	#0,r22	; r22 = 0
+	moveq	#1,r19	; r19 = 1
+
+	movei	#_get_rand_entry,r27	; r27 = &get_rand_entry
+	movei	#_square_data,r26	; r26 = &square_data[0][0]
+	movei	#G_REMAIN,r23		; r23 = G_REMAIN
+
+	moveq	#5,r21			; y = 5
+
+.for_y4_0:
+	moveq	#6,r20			; x = 6
+
+.for_x5_0:
+	move	r24,r0			; r0 = val_array
+	move	PC,TMP
+	subqt	#4,ST
+	addqt	#10,TMP
+	jump	T,(r27)
+	store	TMP,(ST)		; call r0 = _get_rand_entry(val_array)
+	store	r0, (r26)		; square_data[5-y][6-x].val = r0
+
+	div	r25,r0
+	addqt	#4, r26			; r26 = &square_data[5-y][6-x].is_multiple
+	or	r0,r0
+	load	(r23),r0
+
+	cmp	r22,r0			; if ((remainder == 0) || (remainder == -multiple_of))
+	jr	EQ,.is_multiple
+	add	r25,r0
+	jr	EQ,.is_multiple
+	nop
+	jr	.not_multiple
+	store	r22, (r26)		; square_data[5-y][6-x].is_multiple = 0
+
+.is_multiple:
+	store	r19, (r26)		; square_data[5-y][6-x].is_multiple = 1
+
+.not_multiple:
+	movei	#.for_x5_0, TMP
+	subq	#1,r20			; x -= 1
+	jump	NE,(TMP)
+	addqt	#4, r26			; r26 = next(square_data)
+
+	movei	#.for_y4_0, TMP
+	subq	#1,r21
+	jump	NE,(TMP)
+	nop
+
+	move	ST,r14
+	load	(ST),r19
+	load	(r14+1),r20
+	load	(r14+2),r21
+	load	(r14+3),r22
+	load	(r14+4),r23
+	load	(r14+5),r24
+	load	(r14+6),r25
+	load	(r14+7),r26
+	load	(r14+8),r27
+	addqt	#32,ST
+	addqt	#4,ST
+
+	load	(ST),TMP		; RTS
+	jump	T,(TMP)
+	addqt	#4,ST
+	.EVEN
 
 		.long
 

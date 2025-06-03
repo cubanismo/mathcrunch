@@ -11,16 +11,21 @@ enum CpuCommands {
     CPUCMD_INVALID = 0xFFFFFFFF
 };
 
+/* If this struct layout is changed, update ASM in gpuasm.s */
 typedef struct {
     unsigned long val;
     unsigned long is_multiple;
 } SquareData;
 
+/* If these are changed, update ASM in gpuasm.s */
+#define GRID_BOXES_X (6)
+#define GRID_BOXES_Y (5)
+
 /* main.c */
 extern volatile unsigned long spinCount;
 extern volatile unsigned long blitCount;
 extern volatile unsigned long score;
-extern SquareData square_data[5][6];
+extern SquareData square_data[GRID_BOXES_Y][GRID_BOXES_X];
 extern char tmp_str[];
 
 /* gpugame.c */

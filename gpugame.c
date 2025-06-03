@@ -286,22 +286,6 @@ static const unsigned int GRID_START_Y = 40;
 #define SCORE_BOX_CLR           0x1bff1bff
 #define TITLE_BORDER_CLR        0xf7d6f7d6
 
-static void pick_numbers(const unsigned long *val_array, unsigned int multiple_of)
-{
-    int i;
-    int j;
-    unsigned int val;
-
-    for (i = 0; i < 5; i++) {
-        for (j = 0; j < 6; j++) {
-            val = get_rand_entry(val_array);
-
-            square_data[i][j].val = val;
-            square_data[i][j].is_multiple = ((val % multiple_of) == 0);
-        }
-    }
-}
-
 static void init_screen(Sprite *screen, unsigned int frame, unsigned int color)
 {
     unsigned int i;
@@ -312,12 +296,12 @@ static void init_screen(Sprite *screen, unsigned int frame, unsigned int color)
     blit_color(screen, frame, color);
 
     /* Draw the game grid in bright purple */
-    for (j = 0; j < 7 /* XXX Should be 6. Compiler bug. */; j++) {
-        blit_rect(screen, frame, GRID_CLR, PACK_XY(GRID_START_X, GRID_START_Y + SHORT_MUL(j, GRID_SIZE_Y)), SHORT_MUL(6, GRID_SIZE_X), 1);
+    for (j = 0; j < (GRID_BOXES_Y + 1 /* XXX Compiler bug. */ + 1); j++) {
+        blit_rect(screen, frame, GRID_CLR, PACK_XY(GRID_START_X, GRID_START_Y + SHORT_MUL(j, GRID_SIZE_Y)), SHORT_MUL(GRID_BOXES_X, GRID_SIZE_X), 1);
     }
 
-    for (i = 0; i < 8 /* XXX Should be 7. Compiler bug. */; i++) {
-        blit_rect(screen, frame, GRID_CLR, PACK_XY(GRID_START_X + SHORT_MUL(i, GRID_SIZE_X), GRID_START_Y), 1, SHORT_MUL(5, GRID_SIZE_Y));
+    for (i = 0; i < (GRID_BOXES_X + 1 /* XXX Compiler bug. */ + 1); i++) {
+        blit_rect(screen, frame, GRID_CLR, PACK_XY(GRID_START_X + SHORT_MUL(i, GRID_SIZE_X), GRID_START_Y), 1, SHORT_MUL(GRID_BOXES_Y, GRID_SIZE_Y));
     }
 
     /* Draw the score box in light blue */
@@ -338,13 +322,13 @@ static void init_screen(Sprite *screen, unsigned int frame, unsigned int color)
     draw_string(screen, frame, PACK_XY(GRID_START_X - 15, GRID_START_Y + SHORT_MUL(5, GRID_SIZE_Y) + 8), score_str);
     draw_string(screen, frame, PACK_XY(GRID_START_X + 75, GRID_START_Y - 20), levelname_str);
 
-    for (i = 0; i < 7 /* XXX Should be 6. Compiler bug. */; i++) {
-        for (j = 0; j < 6 /* XXX Should be 5. Compiler bug. */; j++) {
+    for (i = 0; i < GRID_BOXES_Y /* XXX Compiler bug. */ + 1; i++) {
+        for (j = 0; j < GRID_BOXES_X /* XXX Compiler bug. */ + 1; j++) {
             val = square_data[i][j].val;
-            /* int_to_str_gpu(tmp_str, val); */
+            int_to_str_gpu(tmp_str, val);
             draw_string(screen, frame,
-                        PACK_XY(GRID_START_X + SHORT_MUL(i, GRID_SIZE_X) + 5,
-                                GRID_START_Y + SHORT_MUL(j, GRID_SIZE_Y) + 5), tmp_str);
+                        PACK_XY(GRID_START_X + SHORT_MUL(j, GRID_SIZE_X) + 15,
+                                GRID_START_Y + SHORT_MUL(i, GRID_SIZE_Y) + 12), tmp_str);
         }
     }
 }

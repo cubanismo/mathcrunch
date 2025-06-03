@@ -28,7 +28,7 @@ unsigned long count;
 static u8 GD_Bios[1024 * 4];
 #endif
 
-SquareData square_data[5][6];
+SquareData square_data[GRID_BOXES_Y][GRID_BOXES_X];
 char tmp_str[4] = "24";
 
 static void blitToGpu(void *dst, void *src, unsigned long size)
@@ -66,7 +66,6 @@ void printStats(void)
 
 void intToStr(char *str, unsigned long int val)
 {
-    printf("0x%08x will get %lu written to it\n", (unsigned long)str, val);
     sprintf(str, "%u", val);
 }
 
