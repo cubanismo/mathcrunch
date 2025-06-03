@@ -342,7 +342,16 @@ _get_rand_entry:
 		.68000
 _gpuasm_end:
 _gpuasm_size	.equ	*-_gpuasm_start
-		.print	"gpuasm Code size is ",/l/x _gpuasm_size,""
+		.print	"gpuasm Code size is $",/l/x _gpuasm_size,""
+_gpu_total_size	.equ	_gpuasm_size+GPUCODE_OFFSET
+		.print	""
+		.print	"Total GPU Code size is $",/l/x _gpu_total_size,""
+		.print	""
+
+		.if	_gpu_total_size>$1000
+		.print	"!!! GPU Code size ($",/l/x _gpu_total_size,") is over $1000!"
+		.fail
+		.endif
 
 		.data
 		.phrase
