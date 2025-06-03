@@ -7,6 +7,5 @@ extern void draw_string_off(const Sprite *sprite,
                             unsigned long frame_offset);
 extern void update_animations(void);
 extern unsigned int get_rand_entry(const unsigned long *val_array);
-extern void pick_numbers(const unsigned long *val_array, unsigned int multiple_of);
 
 #endif /* GPUASM_H_ */
