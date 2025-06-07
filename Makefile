@@ -7,6 +7,7 @@ GDLIB := 0
 
 OBJS=startup.o main.o u235sec.o sprintf.o util.o $(CGPUOBJS) music.o gpuasm.o
 
+CFLAGS_JRISC += -mstk=4000
 CGPUOBJS=gpugame.o
 
 ifeq ($(SKUNKLIB),1)

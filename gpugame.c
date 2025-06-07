@@ -22,6 +22,70 @@ static void gpu_main(void);
 
 #define SHORT_MUL(a, b) ((unsigned long)((unsigned short)(a) * (unsigned short)(b)))
 
+/*
+ * Wait for the blitter to go idle.
+ *
+ * This inline assembly block is roughly the equivalent of this C code:
+ *
+ *   while ((*(volatile long *)B_CMD & 1) == 0);
+ *
+ * But the compiler sometimes does a horrendous job of code generation on that
+ * snippet. Compared to the:
+ *
+ *   5 instructions/7 words/1 branch/1 registers (+ TMP)
+ *
+ * used here, it generates up to:
+ *
+ *   11 instructions/13 words/2 branches/3 registers
+ *
+ * to accomplish this plus some arbitrary operation it shoves in the delay slot
+ * of both branches. Save a handful of bytes of precious local RAM and
+ * demonstrate how to insert inline assembly by hand-coding this small snippet.
+ *
+ * Details:
+ *
+ * volatile = Tell compiler not to optimize code ins this inline assembly block
+ *
+ * .wloop%=: = A local label named '.wloop<something>', where <something> is a
+ *             unique identifier for each use of "asm", meaning each time this
+ *             macro is used it will generate a unique label name. This ensures
+ *             the label is unique even if the macro is used multiple times
+ *             within the same function/local assembly scope.
+ *
+ * The three ':' lines at the end are the parameter declaration portion of the
+ * inline assembly statement and have the following format:
+ *
+ * : input parameters    - None
+ * : input parameters    - None
+ * : clobbered registers - r0 and the condition codes/flags internal register
+ *
+ * These allow the user to bind C labels/variables to arbitrary or specific
+ * registers, and to let the compiler know which registers will be clobbered/
+ * invalidated by this inline assembly code block.
+ *
+ * Special trick for the JRISC gcc compiler: We can use the "TMP" register,
+ * which the JRISC gcc compiler defines to be r16 via a .REGEQU statement it
+ * inserts at the top of each assembly listing it generates, without marking it
+ * as a clobbered register, because it's specifically reserved for local usage
+ * of this type by the compiler anyway. The compiler itself only emits usage of
+ * TMP in self-contained assembly blocks that won't interfere with our own
+ * self-contained, non-optimizable inline assembly block. That said, it probably
+ * wouldn't hurt anything to include it in the clobber list anyway.
+ *
+ * Full syntax details here:
+ *
+ *   https://gcc.gnu.org/onlinedocs/gcc/Extended-Asm.html
+ */
+                                                        /* #B_CMD */
+#define BLITTER_WAIT() asm volatile("              movei   #$F02238, TMP\n"    \
+                                    ".wloop%=:     load    (TMP), r0\n"        \
+                                    "              btst    #0, r0\n"           \
+                                    "              jr      EQ, .wloop%=\n"     \
+                                    "              nop\n"                      \
+                                    :                                          \
+                                    :                                          \
+                                    : "r0", "cc")
+
 /* This has to be the first function, since gcc sets up the stack in the first function */
 void gpu_start(void)
 {
@@ -76,7 +140,7 @@ static void blit_rect(
     }
 
     /* Wait for blitter to idle */
-    while ((*(volatile long *)B_CMD & 1) == 0);
+    BLITTER_WAIT();
 
     /* Set address of destination surface */
     *(volatile long *)A1_BASE = dst->surfAddr + calc_frame_offset(dst->frameSize, frame_num);
@@ -288,8 +352,8 @@ static const unsigned int GRID_START_Y = 40;
 
 static void init_screen(Sprite *screen, unsigned int frame, unsigned int color)
 {
-    unsigned int i;
-    unsigned int j;
+    int i;
+    int j;
     unsigned int val;
 
     /* Clear to backgroud color */
@@ -315,15 +379,28 @@ static void init_screen(Sprite *screen, unsigned int frame, unsigned int color)
     blit_rect(screen, frame, TITLE_BORDER_CLR, PACK_XY(GRID_START_X + 30, GRID_START_Y - 5), SHORT_MUL(6, GRID_SIZE_X) - 60, 2);
 
     /* Wait for blitter to idle */
-    while ((*(volatile long *)B_CMD & 1) == 0);
+    BLITTER_WAIT();
 
     draw_string(screen, frame, PACK_XY(GRID_START_X - 15, GRID_START_Y - 25), level_str);
     draw_string(screen, frame, PACK_XY(GRID_START_X, GRID_START_Y - 15), levelnum_str);
     draw_string(screen, frame, PACK_XY(GRID_START_X - 15, GRID_START_Y + SHORT_MUL(5, GRID_SIZE_Y) + 8), score_str);
     draw_string(screen, frame, PACK_XY(GRID_START_X + 75, GRID_START_Y - 20), levelname_str);
 
-    for (i = 0; i < GRID_BOXES_Y /* XXX Compiler bug. */ + 1; i++) {
-        for (j = 0; j < GRID_BOXES_X /* XXX Compiler bug. */ + 1; j++) {
+    /*
+     * XXX A general note on the JRISC GCC compiler's for loop handling:
+     *
+     * The compiler has two bugs that standard for (0..N) for loops tend to hit:
+     *
+     * -As noted in comments above, its math is always off by one for such loops
+     * -When it uses cmpq for the loop condition, it interprets the order of the
+     *  parameters backwards (cmpq's parameters are reversed compared to those
+     *  of the similar cmp, sub, and subq instructions, but the compiler behaves
+     *  as if its parameter ordering is the same as those instructions).
+     *
+     * Both these bugs can be avoided by counting down instead of up.
+     */
+    for (i = GRID_BOXES_Y - 1; i >= 0; i--) {
+        for (j = GRID_BOXES_X - 1; j >= 0; j--) {
             val = square_data[i][j].val;
             int_to_str_gpu(tmp_str, val);
             draw_string(screen, frame,
@@ -356,6 +433,8 @@ static void gpu_main(void)
     int player_y = 0;
     unsigned int sprite_frame = 1;
     unsigned int draw_debug = 0;
+    unsigned int num_multiples_remaining;
+    char *end_str = win_str;
     Animation *a, *aLocal;
 
     animations = NULL;
@@ -386,7 +465,7 @@ static void gpu_main(void)
 
     SetSpriteList(screen);
 
-    pick_numbers(m2_vals, 2);
+    num_multiples_remaining = pick_numbers(m2_vals, 2);
 
     /*
      * Should be:
@@ -397,9 +476,9 @@ static void gpu_main(void)
     init_screen(screen, 1, bg_color);
 
     /* Wait for blitter to idle */
-    while ((*(volatile long *)B_CMD & 1) == 0);
+    BLITTER_WAIT();
 
-    while (1) {
+    while (num_multiples_remaining) {
         oldTicks = ticks;
         while (ticks == oldTicks);
 
@@ -417,7 +496,7 @@ static void gpu_main(void)
         blit_rect(screen, sprite_frame, bg_color, PACK_XY(GRID_START_X + 42, GRID_START_Y + SHORT_MUL(5, PLAYER_HEIGHT) + 7), 56, 13);
 
         /* Wait for blitter to idle */
-        while ((*(volatile long *)B_CMD & 1) == 0);
+        BLITTER_WAIT();
 
         if (draw_debug) {
             draw_string(screen, sprite_frame, PACK_XY(100, 210), gpu_str);
@@ -432,27 +511,36 @@ static void gpu_main(void)
         newPad1 = *u235se_pad1;
 
         if (((oldPad1 ^ newPad1) & newPad1) & U235SE_BUT_B) {
-            if (square_data[player_y][player_x].is_multiple) {
+            SquareData *s = &square_data[player_y][player_x];
+
+            /* XXX Work around compiler bug. Compiler assumes load sets flags */
+            unsigned int is_multiple = s->is_multiple;
+
+            if (s->is_visible) {
+                s->is_visible = 0;
+                if (is_multiple == 0) {
+                    end_str = lose_str;
+                    ChangeMusicGPU(mus_main);
+                    screen->next = NULL;
+                    break;
+                }
+
                 score += 5;
                 int_to_str_gpu(scoreval_str, score);
-            }
-        }
+                num_multiples_remaining--;
 
-        if (((oldPad1 ^ newPad1) & newPad1) & U235SE_BUT_A) {
-            if (screen->next) {
-                screen->next = NULL;
-            } else {
-                screen->next = player;
-            }
-        }
+                blit_rect(screen, 0, bg_color,
+                          PACK_XY(GRID_START_X + 1 + SHORT_MUL(player_x, GRID_SIZE_X),
+                                  GRID_START_Y + 1 + SHORT_MUL(player_y, GRID_SIZE_Y)),
+                          GRID_SIZE_X - 1, GRID_SIZE_Y - 1);
+                blit_rect(screen, 1, bg_color,
+                          PACK_XY(GRID_START_X + 1 + SHORT_MUL(player_x, GRID_SIZE_X),
+                                  GRID_START_Y + 1 + SHORT_MUL(player_y, GRID_SIZE_Y)),
+                          GRID_SIZE_X - 1, GRID_SIZE_Y - 1);
 
-        if (((oldPad1 ^ newPad1) & newPad1) & U235SE_BUT_C) {
-            if (!newMusic) {
-                ChangeMusicGPU(mus_main);
-                newMusic = 1;
-            } else {
-                ChangeMusicGPU(mus_title);
-                newMusic = 0;
+                if (num_multiples_remaining == 0) {
+                    screen->next = NULL;
+                }
             }
         }
 
@@ -460,17 +548,11 @@ static void gpu_main(void)
             draw_debug ^= 1;
         }
 
-        if (((oldPad1 ^ newPad1) & newPad1) & U235SE_BUT_1) {
-            score = get_rand_entry(m2_vals);
-            int_to_str_gpu(scoreval_str, score);
-        }
-
-
         a = NULL;
 
         /*
          * Work around compiler bug. It acts as if loading "animations" into a
-         * register will set the flags, and seems to do a cmpq 0, reg based on
+         * register will set the flags, and seems to do a jump based on
          * it, but loads do not set flags on JRISC
          */
         aLocal = animations;
@@ -517,4 +599,9 @@ static void gpu_main(void)
             run68kCmd();
         }
     }
+
+    /* Display a super fancy victory or game over screen */
+    blit_color(screen, sprite_frame, bg_color);
+    BLITTER_WAIT();
+    draw_string(screen, sprite_frame, PACK_XY(40, 110), end_str);
 }

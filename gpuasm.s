@@ -10,7 +10,6 @@ GPUCODE_OFFSET	.equ	(GPUGAME_CODESIZE + 7) & ~7	; Phrase-align this file's code
 		.globl	_gpuasm_size
 		.globl	_gpuasm_dst
 		.globl	_update_animations
-		.globl	_get_rand_entry
 		.globl	_pick_numbers
 
 		.extern	_animations
@@ -342,24 +341,33 @@ _get_rand_entry:
 ; Generate the numbers that will populate the game grid. This is a more or less
 ; completely hand-coded implementation of this C code:
 ;
-;   static void pick_numbers(const unsigned long *val_array, unsigned int multiple_of)
+;   unsigned int pick_numbers(const unsigned long *val_array,
+;                             unsigned int multiple_of)
 ;   {
 ;       int i;
 ;       int j;
 ;       unsigned int val;
+;       unsigned int is_multiple;
+;       unsigned int num_multiples_remaining = 0;
 ;
-;       for (i = 0; i < 5; i++) {
-;           for (j = 0; j < 6; j++) {
+;       for (i = 5; i >= 0; i--) {
+;           for (j = 6; j >= 0; j--) {
 ;               val = get_rand_entry(val_array);
 ;
 ;               square_data[i][j].val = val;
-;               square_data[i][j].is_multiple = ((val % multiple_of) == 0);
+;
+;               is_multiple = ((val % multiple_of) == 0);
+;               square_data[i][j].is_multiple = is_multiple;
+;               num_multiples_remaining += is_multiple;
+;
+;               square_data[i][j].is_visible = 1;
 ;           }
 ;       }
 ;   }
 ;
-; Because the compiler's output was broken and too hard to understand for me to
-; be able to make targeted fixes like the case above.
+; It's hand-coded rather than lightly modified like the update_animations()
+; function above because in this case the compiler's output was broken so badly
+; it wasn't worth trying to preserve much of the original code's structure.
 _pick_numbers:
 	subqt	#32,ST
 	subqt	#4,ST
@@ -377,9 +385,8 @@ _pick_numbers:
 
 	move	r0,r24	; r24 = val_array
 	move	r1,r25	; r25 = multiple_of
-	moveq	#0,r22	; r22 = 0
-	moveq	#1,r19	; r19 = 1
 
+	moveq	#0,r22			; num_multiples_remaining = 0
 	movei	#_get_rand_entry,r27	; r27 = &get_rand_entry
 	movei	#_square_data,r26	; r26 = &square_data[0][0]
 	movei	#G_REMAIN,r23		; r23 = G_REMAIN
@@ -399,31 +406,37 @@ _pick_numbers:
 	store	r0, (r26)		; square_data[5-y][6-x].val = r0
 
 	div	r25,r0
-	addqt	#4, r26			; r26 = &square_data[5-y][6-x].is_multiple
+	move	r26, r14		; r14 = &square_data[5-y]6-x]
 	or	r0,r0
 	load	(r23),r0
 
-	cmp	r22,r0			; if ((remainder == 0) || (remainder == -multiple_of))
+	cmpq	#0,r0			; if ((remainder == 0) || (remainder == -multiple_of))
 	jr	EQ,.is_multiple
 	add	r25,r0
 	jr	EQ,.is_multiple
 	nop
 	jr	.not_multiple
-	store	r22, (r26)		; square_data[5-y][6-x].is_multiple = 0
+	moveq	#0, r19			; is_multiple = 0
 
 .is_multiple:
-	store	r19, (r26)		; square_data[5-y][6-x].is_multiple = 1
+	moveq	#1, r19			; is_multiple = 1;
 
 .not_multiple:
 	movei	#.for_x5_0, TMP
+	store	r19, (r14+1)		; square_data[5-y][6-x].is_multiple = is_multiple
+	add	r19, r22		; num_multiples_remaining += is_multiple
 	subq	#1,r20			; x -= 1
-	jump	NE,(TMP)
-	addqt	#4, r26			; r26 = next(square_data)
+	moveq	#1,r19
+	store	r19,(r14+2)		; square_data[5-y][6-x].is_visible = 1
+	jump	NE,(TMP)		; if (x != 0) goto .for_x5_0
+	addqt	#12, r26		; r26 = next(square_data)
 
 	movei	#.for_y4_0, TMP
 	subq	#1,r21
 	jump	NE,(TMP)
 	nop
+
+	move	r22, r0			; return num_multiples_remaining
 
 	move	ST,r14
 	load	(ST),r19

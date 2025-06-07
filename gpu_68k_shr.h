@@ -15,6 +15,7 @@ enum CpuCommands {
 typedef struct {
     unsigned long val;
     unsigned long is_multiple;
+    unsigned long is_visible;
 } SquareData;
 
 /* If these are changed, update ASM in gpuasm.s */
