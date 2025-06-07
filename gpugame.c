@@ -367,7 +367,7 @@ static void init_screen(Sprite *screen, unsigned int frame, unsigned int color)
 
     /* Draw the game grid in bright purple */
     for (j = 0; j < (GRID_BOXES_Y + 1 /* XXX Compiler bug. */ + 1); j++) {
-        blit_rect(screen, frame, GRID_CLR, PACK_XY(GRID_START_X, GRID_START_Y + SHORT_MUL(j, GRID_SIZE_Y)), SHORT_MUL(GRID_BOXES_X, GRID_SIZE_X), 1);
+        blit_rect(screen, frame, GRID_CLR, PACK_XY(GRID_START_X, GRID_START_Y + SHORT_MUL(j, GRID_SIZE_Y)), SHORT_MUL(GRID_BOXES_X, GRID_SIZE_X) + 1, 1);
     }
 
     for (i = 0; i < (GRID_BOXES_X + 1 /* XXX Compiler bug. */ + 1); i++) {
