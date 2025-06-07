@@ -465,7 +465,9 @@ static void gpu_main(void)
 
     SetSpriteList(screen);
 
-    num_multiples_remaining = pick_numbers(mult_vals, multiple_of);
+    do {
+        num_multiples_remaining = pick_numbers(mult_vals, multiple_of);
+    } while (num_multiples_remaining == 0);
 
     /*
      * Should be:

@@ -342,6 +342,7 @@ done:
 ;
 ;   Clobbers:
 ;   - r12
+;   - XXX r11, r10 - for the arbitrary delay loop.
 ;
 ; If adding usage of additional registers, ensure all callers (namely
 ; _pick_numbers) are updated accordingly.
@@ -351,6 +352,22 @@ get_rand_entry:
 	movei	#$fc, r13
 	and	r13, r12
 	load	(r14+r12), r13
+
+	; XXX throw in some arbitrary delay to get better random numbers
+	; out of the DSP:
+	moveq	#31, r11
+.big:
+	moveq	#31, r10
+.little:
+	or	r12, r12
+	movei	#_square_data, TMP
+	load	(TMP), r12
+	subq	#1, r10
+	jr	NE, .little
+	nop
+	subq	#1, r11
+	jr	NE, .big
+	nop
 
 	load	(ST),TMP		; RTS
 	jump	T,(TMP)
