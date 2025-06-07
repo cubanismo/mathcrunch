@@ -343,8 +343,8 @@ static void set_sprite_frame(
     sprite->firstPhraseHighTemplate = ADDR_TO_OBJ_BITMAP(sprite->surfAddr + calc_frame_offset(sprite->frameSize, frame));
 }
 
-static const unsigned int GRID_START_X = 40;
-static const unsigned int GRID_START_Y = 40;
+#define GRID_START_X (40)
+#define GRID_START_Y (40)
 
 #define GRID_CLR                0x60e960e9
 #define SCORE_BOX_CLR           0x1bff1bff
@@ -410,9 +410,6 @@ static void init_screen(Sprite *screen, unsigned int frame, unsigned int color)
     }
 }
 
-static const unsigned int SCREEN_OFF_X = 16; /* Copied from InitLister logic, NTSC version for 320 x 240 bitmap */
-static const unsigned int SCREEN_OFF_Y = 13; /* Copied from InitLister logic, NTSC version for 320 x 240 bitmap */
-
 static void myclamp(int *val, int min, int max) {
     if (*val < min) *val = min;
     if (*val > max) *val = max;
@@ -446,8 +443,8 @@ static void gpu_main(void)
                 SPRITE_DEPTH16,
                 SPRITE_SINGLE_BUFFERED | SPRITE_NOT_TRANSPARENT);
 
-    SET_SPRITE_X(screen, SCREEN_OFF_X);
-    SET_SPRITE_Y(screen, SCREEN_OFF_Y);
+    SET_SPRITE_X(screen, screen_off_x);
+    SET_SPRITE_Y(screen, screen_off_y);
 
     make_sprite(player,
                 jagcrunchbmp,
@@ -456,8 +453,8 @@ static void gpu_main(void)
                 SPRITE_DEPTH16,
                 SPRITE_SINGLE_BUFFERED | SPRITE_TRANSPARENT);
 
-    SET_SPRITE_X(player, 16 + GRID_START_X);
-    SET_SPRITE_Y(player, 13 + GRID_START_Y);
+    SET_SPRITE_X(player, screen_off_x + GRID_START_X);
+    SET_SPRITE_Y(player, screen_off_y + GRID_START_Y);
 
     screen->next = player;
 
@@ -582,8 +579,8 @@ static void gpu_main(void)
 
         if (a) {
             a->sprite = player;
-            a->endX = SCREEN_OFF_X + GRID_START_X + SHORT_MUL(player_x, GRID_SIZE_X);
-            a->endY = SCREEN_OFF_Y + GRID_START_Y + SHORT_MUL(player_y, GRID_SIZE_Y);
+            a->endX = screen_off_x + GRID_START_X + SHORT_MUL(player_x, GRID_SIZE_X);
+            a->endY = screen_off_y + GRID_START_Y + SHORT_MUL(player_y, GRID_SIZE_Y);
             a->speedPerTick = 4;
             a->next = animations;
             animations = a;

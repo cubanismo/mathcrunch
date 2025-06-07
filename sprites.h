@@ -45,8 +45,8 @@ extern unsigned char jagcrunchbmp[];
 #define SPRITE_SINGLE_BUFFERED  (0 << 1)
 #define SPRITE_DOUBLE_BUFFERED  (1 << 1)
 
-#define SET_SPRITE_X(s_, x_) (s_)->x = (x_)
-#define SET_SPRITE_Y(s_, y_) (s_)->y = ((y_) << 4)
+#define SET_SPRITE_X(s_, x_) (s_)->x = (unsigned long int)(x_)
+#define SET_SPRITE_Y(s_, y_) (s_)->y = ((unsigned long int)(y_) << 4)
 
 #define GET_SPRITE_X(s_) ((s_)->x)
 #define GET_SPRITE_Y(s_) ((s_)->y >> 4)

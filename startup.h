@@ -13,6 +13,8 @@ extern char scoreval_str[];
 extern char win_str[];
 extern char lose_str[];
 extern unsigned long m2_vals[];
+extern short screen_off_x;
+extern short screen_off_y;
 
 /* XXX Should be shared with startup.s */
 #define PPP 4

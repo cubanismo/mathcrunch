@@ -79,6 +79,8 @@ PLAYER_HEIGHT	.equ	64
 		.globl  a_hde
 		.globl  width
 		.globl  height
+		.globl	_screen_off_x
+		.globl	_screen_off_y
 		.globl	_ChangeMusic
 		.globl	_stop68k
 		.globl	_gpu_str
@@ -378,8 +380,9 @@ InitLister:
 		move.w  height,d4           	; Center bitmap vertically
 		sub.w   #BMP_HEIGHT,d4
 		add.w   a_vdb,d4
-		andi.w  #$FFFE,d4               ; Must be even
-		lsl.w   #3,d4
+		lsr.w	#1,d4			; Must be even
+		move.w	d4,_screen_off_y	; Save for use in sprite engine
+		lsl.w   #4,d4
 		or.w    d4,d1                   ; Stuff YPOS in low phrase
 
 		move.l	#_screenbmp,d4
@@ -398,6 +401,7 @@ InitLister:
 		lsr.w   #2,d4               	; /4 Pixel Divisor
 		sub.w   #BMP_WIDTH,d4
 		lsr.w   #1,d4
+		move.w	d4,_screen_off_x	; Save for use in sprite engine
 		or.w    d4,d1
 
 		ori.l	#(BMP_PHRASES<<18)|(BMP_PHRASES<<28),d1	; DWIDTH|IWIDTH
@@ -607,6 +611,8 @@ a_vdb:      	.ds.w   1
 a_vde:      	.ds.w   1
 width:      	.ds.w   1
 height:     	.ds.w   1
+_screen_off_x:	.ds.w	1
+_screen_off_y:	.ds.w	1
 
 		.long
 spriteList:	.ds.l	1
