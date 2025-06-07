@@ -450,7 +450,7 @@ static void gpu_main(void)
     SET_SPRITE_Y(screen, SCREEN_OFF_Y);
 
     make_sprite(player,
-                playerbmp,
+                jagcrunchbmp,
                 PLAYER_WIDTH,
                 PLAYER_HEIGHT,
                 SPRITE_DEPTH16,
@@ -458,8 +458,6 @@ static void gpu_main(void)
 
     SET_SPRITE_X(player, 16 + GRID_START_X);
     SET_SPRITE_Y(player, 13 + GRID_START_Y);
-
-    blit_rect(player, 0, 0x1bff1bff, 0, PLAYER_WIDTH, PLAYER_HEIGHT);
 
     screen->next = player;
 

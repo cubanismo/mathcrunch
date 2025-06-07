@@ -3,7 +3,6 @@
 
 extern volatile unsigned long ticks;
 extern unsigned char screenbmp[];
-extern unsigned char playerbmp[];
 extern char gpu_str[];
 extern char dsp_str[];
 extern char level_str[];

@@ -71,7 +71,6 @@ PLAYER_HEIGHT	.equ	64
 		.globl	olp2set
 		.globl	_ticks
 		.globl	_screenbmp
-		.globl	_playerbmp
 		.globl	_m2_vals
 
 		.globl  a_vdb
@@ -620,8 +619,5 @@ _scoreval_str:	.ds.b	16
 
 		.phrase
 _screenbmp:	.ds.l	BMP_WIDTH*BMP_HEIGHT*(PPP>>1)*2
-
-		.phrase
-_playerbmp:	.ds.l	PLAYER_WIDTH*PLAYER_HEIGHT*(PPP>>1)
 
 		.end
