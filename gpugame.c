@@ -405,7 +405,7 @@ static void init_screen(Sprite *screen, unsigned int frame, unsigned int color)
             int_to_str_gpu(tmp_str, val);
             draw_string(screen, frame,
                         PACK_XY(GRID_START_X + SHORT_MUL(j, GRID_SIZE_X) + 15,
-                                GRID_START_Y + SHORT_MUL(i, GRID_SIZE_Y) + 12), tmp_str);
+                                GRID_START_Y + SHORT_MUL(i, GRID_SIZE_Y) + 13), tmp_str);
         }
     }
 }
