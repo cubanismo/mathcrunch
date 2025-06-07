@@ -90,7 +90,6 @@ int start()
     long unsigned musicAddr;
 
     level_num = 0;
-    score = 0;
 
     spinCount = blitCount = 0;
     gpu_str[0] = 'G';
@@ -111,8 +110,6 @@ int start()
     GD_Install(GD_Bios);
 #endif
 
-    intToStr(scoreval_str, score);
-
     blitToGpu(G_RAM, gpugame_start, (long)gpugame_size);
     blitToGpu(gpuasm_dst, gpuasm_start, (long)gpuasm_size);
     printf("Done blitting GPU code\n");
@@ -120,6 +117,12 @@ int start()
     while (++level_num < 9) {
         sprintf(levelnum_str, "%u", level_num);
         sprintf(levelname_str, "Multiples of %u", level_num + 1);
+        if (level_num == 1) {
+            score = 0;
+            musicAddr = ChangeMusic(mus_title);
+            printf("Starting music at 0x%08x\n", musicAddr);
+        }
+        intToStr(scoreval_str, score);
 
         mult_vals = m_vals[level_num - 1];
         multiple_of = level_num + 1;
@@ -127,11 +130,6 @@ int start()
 
         *pc = (unsigned long)&gpu_start;
         *ctrl = GPUGO;
-
-        if (level_num == 1) {
-            musicAddr = ChangeMusic(mus_title);
-            printf("Starting music at 0x%08x\n", musicAddr);
-        }
 
         while (gpu_running) {
             stop68k();

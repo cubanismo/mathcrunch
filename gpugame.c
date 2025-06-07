@@ -618,7 +618,6 @@ static void gpu_main(void)
 
     if (num_multiples_remaining > 0) {
         level_num = 0;
-        score = 0;
     }
 
     run68kCmd(CPUCMD_STOP_GPU);
