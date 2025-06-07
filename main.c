@@ -17,12 +17,15 @@ volatile unsigned long blitCount;
 
 volatile unsigned long score;
 
-static unsigned long level_num;
+volatile unsigned long level_num;
 
 Animation animationData[4];
 Animation *animations;
 
 unsigned long count;
+
+unsigned long *mult_vals;
+unsigned long multiple_of;
 
 #if defined(USE_GD)
 static u8 GD_Bios[1024 * 4];
@@ -30,6 +33,17 @@ static u8 GD_Bios[1024 * 4];
 
 SquareData square_data[GRID_BOXES_Y][GRID_BOXES_X];
 char tmp_str[4] = "24";
+
+unsigned long *m_vals[] = {
+    &m2_vals[0],
+    &m3_vals[0],
+    &m4_vals[0],
+    &m5_vals[0],
+    &m6_vals[0],
+    &m7_vals[0],
+    &m8_vals[0],
+    &m9_vals[0],
+};
 
 static void blitToGpu(void *dst, void *src, unsigned long size)
 {
@@ -75,7 +89,7 @@ int start()
 	volatile	long	*ctrl=(void *)G_CTRL;
     long unsigned musicAddr;
 
-    level_num = 1;
+    level_num = 0;
     score = 0;
 
     spinCount = blitCount = 0;
@@ -103,16 +117,27 @@ int start()
     blitToGpu(gpuasm_dst, gpuasm_start, (long)gpuasm_size);
     printf("Done blitting GPU code\n");
 
-    sprintf(levelnum_str, "%u", level_num);
-    sprintf(levelname_str, "Multiples of %u", level_num + 1);
+    while (++level_num < 9) {
+        sprintf(levelnum_str, "%u", level_num);
+        sprintf(levelname_str, "Multiples of %u", level_num + 1);
 
-    *pc = (unsigned long)&gpu_start;
-    *ctrl = GPUGO;
+        mult_vals = m_vals[level_num - 1];
+        multiple_of = level_num + 1;
+        gpu_running = 1;
 
-    musicAddr = ChangeMusic(mus_title);
-    printf("Starting music at 0x%08x\n", musicAddr);
+        *pc = (unsigned long)&gpu_start;
+        *ctrl = GPUGO;
 
-    while (1) {
-        stop68k();
+        if (level_num == 1) {
+            musicAddr = ChangeMusic(mus_title);
+            printf("Starting music at 0x%08x\n", musicAddr);
+        }
+
+        while (gpu_running) {
+            stop68k();
+        }
     }
+
+    /* The user won */
+    while (1);
 }

@@ -14,6 +14,9 @@
 #define GRID_MAX_X (5)
 #define GRID_MAX_Y (4)
 
+/* When defined to 1, debug statistics are printed on-screen */
+#define DEBUG_STATS 0
+
 volatile unsigned long cpuCmd;
 void *volatile cpuData0;
 void *volatile cpuData1;
@@ -184,39 +187,42 @@ static void blit_color(const Sprite *dst, unsigned int frame_num, unsigned int c
     blit_rect(dst, frame_num, color, 0, BMP_PHRASES * 4, BMP_HEIGHT);
 }
 
-static void run68kCmd(void)
+static void run68kCmd(unsigned int cmd)
 {
     static volatile long *gctrl = G_CTRL;
+
+    /* First convey the command */
+    cpuCmd = cmd;
 
     /* Interrupt the 68k */
     *gctrl = GPUGO | 0x2;
 
-    while (cpuCmd != 0);
+    if (cmd == CPUCMD_STOP_GPU) {
+        *gctrl = 0;
+        asm volatile ("     nop\n"
+                      "     nop\n");
+    } else {
+        while (cpuCmd != 0);
+    }
 }
 
 static void ChangeMusicGPU(void *music)
 {
     cpuData0 = music;
-    cpuCmd = CPUCMD_CHANGE_MUSIC;
-
-    run68kCmd();
+    run68kCmd(CPUCMD_CHANGE_MUSIC);
 }
 
 static void SetSpriteList(Sprite *list)
 {
     cpuData0 = list;
-    cpuCmd = CPUCMD_SET_SPRITE_LIST;
-
-    run68kCmd();
+    run68kCmd(CPUCMD_SET_SPRITE_LIST);
 }
 
 static void int_to_str_gpu(char *str, unsigned int val)
 {
     cpuData0 = str;
     cpuData1 = (void *)val;
-    cpuCmd = CPUCMD_INT_TO_STR;
-
-    run68kCmd();
+    run68kCmd(CPUCMD_INT_TO_STR);
 }
 
 #define DEPTH_TO_BLIT_DEPTH(d_) ((d_) << 3)
@@ -429,7 +435,6 @@ static void gpu_main(void)
     int player_x = 0;
     int player_y = 0;
     unsigned int sprite_frame = 1;
-    unsigned int draw_debug = 0;
     unsigned int num_multiples_remaining;
     char *end_str = win_str;
     Animation *a, *aLocal;
@@ -460,7 +465,7 @@ static void gpu_main(void)
 
     SetSpriteList(screen);
 
-    num_multiples_remaining = pick_numbers(m2_vals, 2);
+    num_multiples_remaining = pick_numbers(mult_vals, multiple_of);
 
     /*
      * Should be:
@@ -482,10 +487,11 @@ static void gpu_main(void)
         sprite_frame = !sprite_frame;
 
         /* Clear text regions */
-        if (draw_debug) {
-            /* Debug text */
-            blit_rect(screen, sprite_frame, bg_color, PACK_XY(100, 210), 200, 20);
-        }
+
+#if DEBUG_STATS != 0
+        /* Debug text */
+        blit_rect(screen, sprite_frame, bg_color, PACK_XY(100, 210), 200, 20);
+#endif
 
         /* Score */
         blit_rect(screen, sprite_frame, bg_color, PACK_XY(GRID_START_X + 42, GRID_START_Y + SHORT_MUL(5, PLAYER_HEIGHT) + 7), 56, 13);
@@ -493,10 +499,11 @@ static void gpu_main(void)
         /* Wait for blitter to idle */
         BLITTER_WAIT();
 
-        if (draw_debug) {
-            draw_string(screen, sprite_frame, PACK_XY(100, 210), gpu_str);
-            draw_string(screen, sprite_frame, PACK_XY(100, 220), dsp_str);
-        }
+#if DEBUG_STATS != 0
+        draw_string(screen, sprite_frame, PACK_XY(100, 210), gpu_str);
+        draw_string(screen, sprite_frame, PACK_XY(100, 220), dsp_str);
+#endif
+
         draw_string(screen, sprite_frame, PACK_XY(GRID_START_X + 45, GRID_START_Y + SHORT_MUL(5, GRID_SIZE_Y) + 8), scoreval_str);
 
         set_sprite_frame(screen, sprite_frame);
@@ -537,10 +544,6 @@ static void gpu_main(void)
                     screen->next = NULL;
                 }
             }
-        }
-
-        if (((oldPad1 ^ newPad1) & newPad1) & U235SE_BUT_0) {
-            draw_debug ^= 1;
         }
 
         a = NULL;
@@ -586,12 +589,11 @@ static void gpu_main(void)
             animations = a;
         }
 
-        oldPad1 = *u235se_pad1;
+        oldPad1 = newPad1;
 
         if (++printDelay >= 30) {
             printDelay = 0;
-            cpuCmd = CPUCMD_PRINT_STATS;
-            run68kCmd();
+            run68kCmd(CPUCMD_PRINT_STATS);
         }
     }
 
@@ -599,4 +601,23 @@ static void gpu_main(void)
     blit_color(screen, sprite_frame, bg_color);
     BLITTER_WAIT();
     draw_string(screen, sprite_frame, PACK_XY(40, 110), end_str);
+    if (level_num < 8) {
+        draw_string(screen, sprite_frame, PACK_XY(40, 130), press_b_str);
+    }
+
+    oldPad1 = newPad1;
+    do {
+        newPad1 = *u235se_pad1;
+
+        if (((oldPad1 ^ newPad1) & newPad1) & U235SE_BUT_B) break;
+
+        oldPad1 = newPad1;
+    } while (1);
+
+    if (num_multiples_remaining > 0) {
+        level_num = 0;
+        score = 0;
+    }
+
+    run68kCmd(CPUCMD_STOP_GPU);
 }

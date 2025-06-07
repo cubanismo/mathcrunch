@@ -70,8 +70,16 @@ PLAYER_HEIGHT	.equ	64
 		.globl	gSetOLP
 		.globl	olp2set
 		.globl	_ticks
+		.globl	_gpu_running
 		.globl	_screenbmp
 		.globl	_m2_vals
+		.globl	_m3_vals
+		.globl	_m4_vals
+		.globl	_m5_vals
+		.globl	_m6_vals
+		.globl	_m7_vals
+		.globl	_m8_vals
+		.globl	_m9_vals
 
 		.globl  a_vdb
 		.globl  a_vde
@@ -92,6 +100,7 @@ PLAYER_HEIGHT	.equ	64
 		.globl	_scoreval_str
 		.globl	_win_str
 		.globl	_lose_str
+		.globl	_press_b_str
 		.globl	_spriteData
 ; Externals
 		.extern	_start
@@ -317,6 +326,13 @@ SetSpriteList:
 		move.l	d1, spriteList
 		rts
 
+WaitStopGPU:
+		move.l  G_CTRL,d0   		; Wait for write.
+		andi.w  #$1,d0
+		bne 	WaitStopGPU
+		move.l	#0,_gpu_running
+		rts
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; InitLister: Initialize Object List Processor List
 ;
@@ -491,6 +507,7 @@ HandleGpu:
 		HANDLE_CPUCMD 2, _ChangeMusic, d1
 		HANDLE_CPUCMD 3, SetSpriteList
 		HANDLE_CPUCMD 4, _intToStr, d1, d2
+		HANDLE_CPUCMD 5, WaitStopGPU
 
 		movem.l	(sp)+, d0-d2/a0-a1
 		rts
@@ -593,11 +610,43 @@ stopmuscmds:	.dc.l	$01
 		.dc.l	$0
 _score_str:	.dc.b	'Score:',0
 _level_str:	.dc.b	'Level:',0
-_win_str:	.dc.b	'        Congratulations! You Win!',0
+_win_str:	.dc.b	'        Congratulations! You Won!',0
 _lose_str:	.dc.b	'That number is not a multiple! Game Over.',0
+_press_b_str:	.dc.b	'          Press "B" to continue',0
 
 		.long
-_m2_vals:	.dc.l	2,4,6,8,10,12,14,16,18,20,1,3,5,7,9,11,13,15,17,19,2,4,6,8,10,12,14,16,18,20,1,3,5,7,9,11,13,15,17,19,2,4,6,8,10,12,14,16,18,20,1,3,5,7,9,11,13,15,17,19,2,4,1,3
+_m2_vals:	.dc.l	 2, 4, 6, 8,10,12,14,16,18,20, 1, 3, 5, 7, 9,11
+		.dc.l	13,15,17,19, 2, 4, 6, 8,10,12,14,16,18,20, 1, 3
+		.dc.l	 5, 7, 9,11,13,15,17,19, 2, 4, 6, 8,10,12,14,16
+		.dc.l	18,20, 1, 3, 5, 7, 9,11,13,15,17,19, 2, 4, 1, 3
+_m3_vals:	.dc.l	 3, 6, 9,12,15,18,21,24,27,30, 3, 6, 9,12,15,18
+		.dc.l	21,24,27,30, 1, 2, 4, 5, 7, 8,10,11,13,14,16,17
+		.dc.l	19,20,22,23,25,26,28,29,31,32, 1, 2, 4, 5, 7, 8
+		.dc.l	10,11,13,14,16,17,19,20,22,23,25,26,28,29,31,32
+_m4_vals:	.dc.l	 4, 8,12,16,20,24,28,32,36,40,44,48, 4, 8,12,16
+		.dc.l	20,24,28,32, 1, 2, 3, 5, 6, 7, 9,10,11,13,14,15
+		.dc.l	17,18,19,21,22,23,25,26,27,29,30,31,33,34,35,37
+		.dc.l	38,39,41,42,43,45,46,47, 1, 2, 3, 5, 6, 7, 9,10
+_m5_vals:	.dc.l	 5,10,15,20,25,30,35,40,45,50,55,60, 5,10,15,20
+		.dc.l	25,30,35,40,45,50,55,60, 5, 7, 8, 9,11,12,13,14
+		.dc.l	16,17,18,19,21,22,23,24,26,27,28,29,31,32,33,34
+		.dc.l	36,37,38,39,41,42,43,44,46,47,48,49,51,52,53,54
+_m6_vals:	.dc.l	 6,12,18,24,30,36,42,48,54,60,66,72, 6,12,18,24
+		.dc.l	30,36,42,48,54,60,66,72, 6,12,18,24,30,36,42,48
+		.dc.l	 2, 4, 5, 7, 8,10,13,14,16,20,21,22,23,25,26,28
+		.dc.l	32,34,38,40,44,46,50,52,56,58,62,64,68,70,71,73
+_m7_vals:	.dc.l	 7,14,21,28,35,42,49,56,63,70,77,84,91,98, 7,21
+		.dc.l	35,42,56,84,91,98, 7,14,21,28,35,42,49,56,63,70
+		.dc.l	11,17,23,32,39,44,43,50,51,58,59,64,68,71,73,74
+		.dc.l	78,81,87,88,89,92,93,94,95,96,97,99,33,32,20,27
+_m8_vals:	.dc.l	 8,16,24,32,40,48,56,64,72,80,88,96, 8,16,24,32
+		.dc.l	40,48,56,64,72,80,88,96, 8,16,24,32,40,48,56,64
+		.dc.l	 4,10,12,14,18,20,26,28,33,34,37,38,42,44,47,48
+		.dc.l	52,54,58,60,62,68,70,74,78,82,84,86,90,92,94,98
+_m9_vals:	.dc.l	 9,18,27,36,45,54,63,72,81,90,99, 9,18,27,36,45
+		.dc.l	54,63,72,81,90,99, 9,18,27,36,45,54,63,72,81,90
+		.dc.l	 3, 6,16,19,21,23,29,34,38,39,40,41,42,44,47,49
+		.dc.l	52,56,59,64,66,69,70,74,78,79,82,89,91,92,97,98
 
 		.bss
 		.dphrase
@@ -605,6 +654,7 @@ _m2_vals:	.dc.l	2,4,6,8,10,12,14,16,18,20,1,3,5,7,9,11,13,15,17,19,2,4,6,8,10,12
 listbuf:    	.ds.l   LISTSIZE*2  		; Object List
 bmpupdate:  	.ds.l   2       		; One Phrase of Bitmap for Refresh
 _ticks:		.ds.l	1			; Incrementing # of ticks
+_gpu_running:	.ds.l	1			; 1 if GPU is running, 0 if it is stopped
 a_hdb:  	.ds.w   1
 a_hde:      	.ds.w   1
 a_vdb:      	.ds.w   1

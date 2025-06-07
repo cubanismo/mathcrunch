@@ -7,6 +7,7 @@ enum CpuCommands {
     CPUCMD_CHANGE_MUSIC,
     CPUCMD_SET_SPRITE_LIST,
     CPUCMD_INT_TO_STR,
+    CPUCMD_STOP_GPU,
 
     CPUCMD_INVALID = 0xFFFFFFFF
 };
@@ -26,8 +27,11 @@ typedef struct {
 extern volatile unsigned long spinCount;
 extern volatile unsigned long blitCount;
 extern volatile unsigned long score;
+extern volatile unsigned long level_num;
 extern SquareData square_data[GRID_BOXES_Y][GRID_BOXES_X];
 extern char tmp_str[];
+extern unsigned long *mult_vals;
+extern unsigned long multiple_of;
 
 /* gpugame.c */
 extern volatile unsigned long cpuCmd;

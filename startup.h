@@ -12,9 +12,18 @@ extern char score_str[];
 extern char scoreval_str[];
 extern char win_str[];
 extern char lose_str[];
+extern char press_b_str[];
 extern unsigned long m2_vals[];
+extern unsigned long m3_vals[];
+extern unsigned long m4_vals[];
+extern unsigned long m5_vals[];
+extern unsigned long m6_vals[];
+extern unsigned long m7_vals[];
+extern unsigned long m8_vals[];
+extern unsigned long m9_vals[];
 extern short screen_off_x;
 extern short screen_off_y;
+extern volatile unsigned long gpu_running;
 
 /* XXX Should be shared with startup.s */
 #define PPP 4
