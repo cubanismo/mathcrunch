@@ -1,8 +1,8 @@
 include $(JAGSDK)/tools/build/jagdefs.mk
 
-# Change this to 0 to build without the skunk console dependency.
-# Things like printf won't work.
-SKUNKLIB := 1
+# Change one of these to 1 to build with the skunk console dependency
+# or the GameDrive library. They're only used for printf-style debugging.
+SKUNKLIB := 0
 GDLIB := 0
 
 OBJS=startup.o main.o u235sec.o sprintf.o util.o $(CGPUOBJS) music.o sprites.o gpuasm.o
