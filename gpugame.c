@@ -341,22 +341,6 @@ static void myclamp(int *val, int min, int max) {
     if (*val > max) *val = max;
 }
 
-static void pick_numbers(const unsigned long *val_array, unsigned int multiple_of)
-{
-    int i;
-    int j;
-    unsigned int val;
-
-    for (i = 0; i < GRID_BOXES_Y /* XXX Compiler bug */ + 1; i++) {
-        for (j = 0; j < GRID_BOXES_X /* XXX Compiler bug */ + 1; j++) {
-            val = get_rand_entry(val_array);
-
-            square_data[i][j].val = val;
-            square_data[i][j].is_multiple = ((val % multiple_of) == 0);
-        }
-    }
-}
-
 static void gpu_main(void)
 {
     unsigned int i;
