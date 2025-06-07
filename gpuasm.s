@@ -326,13 +326,31 @@ done:
 	jump	T,(TMP)
 	addqt	#4,ST
 
-_get_rand_entry:
-	move	r0, r14
-	movei	#U235SE_rng, r7
-	load	(r7), r8
-	movei	#$fc, r6
-	and	r6, r8
-	load	(r14+r8), r0
+; get_rand_entry: Return a random number from a 64-entry table
+;
+; NOTE: This function does not use the C calling convention for its parameters!
+;       However, it does use the regular C call/return mechanism. To ensure no
+;       C code tries to call this function by mistake, it does not have a
+;       leading underscore in its name.
+;
+; Parameters:
+;   Input:
+;   - r14: The 64-entry array of unsigned long values to sample from
+;
+;   Output:
+;   - r13: The randomly-chosen value from the array
+;
+;   Clobbers:
+;   - r12
+;
+; If adding usage of additional registers, ensure all callers (namely
+; _pick_numbers) are updated accordingly.
+get_rand_entry:
+	movei	#U235SE_rng, r13
+	load	(r13), r12
+	movei	#$fc, r13
+	and	r13, r12
+	load	(r14+r12), r13
 
 	load	(ST),TMP		; RTS
 	jump	T,(TMP)
@@ -368,93 +386,68 @@ _get_rand_entry:
 ; It's hand-coded rather than lightly modified like the update_animations()
 ; function above because in this case the compiler's output was broken so badly
 ; it wasn't worth trying to preserve much of the original code's structure.
+;
+; NOTE: This function takes advantage of the fact that the only other function
+; it calls is get_rand_entry(), which we know has a non-standard calling
+; convention and only touches the registers r12-r14. Hence, if that function is
+; modified, this function likely needs to be modified as well. Additionally, if
+; this function is modified to call any other functions, it needs to be sure to
+; preserve the local registers it uses when making such calls.
 _pick_numbers:
-	subqt	#32,ST
-	subqt	#4,ST
-	move	ST,r14
-
-	store	r19,(ST)
-	store	r20,(r14+1)
-	store	r21,(r14+2)
-	store	r22,(r14+3)
-	store	r23,(r14+4)
-	store	r24,(r14+5)
-	store	r25,(r14+6)
-	store	r26,(r14+7)
-	store	r27,(r14+8)
-
-	move	r0,r24	; r24 = val_array
-	move	r1,r25	; r25 = multiple_of
-
-	moveq	#0,r22			; num_multiples_remaining = 0
-	movei	#_get_rand_entry,r27	; r27 = &get_rand_entry
-	movei	#_square_data,r26	; r26 = &square_data[0][0]
-	movei	#G_REMAIN,r23		; r23 = G_REMAIN
-
-	moveq	#5,r21			; y = 5
+	move	r0,r14			; r14 = val_array
+					; r1 = multiple_of
+	movei	#G_REMAIN,r5		; r5 = G_REMAIN
+	movei	#get_rand_entry,r6	; r6 = &get_rand_entry
+	movei	#_square_data,r15	; r15 = &square_data[0][0]
+	moveq	#0,r0			; num_multiples_remaining = 0
+	moveq	#5,r4			; y = 5
 
 .for_y4_0:
-	moveq	#6,r20			; x = 6
+	moveq	#6,r3			; x = 6
 
 .for_x5_0:
-	move	r24,r0			; r0 = val_array
 	move	PC,TMP
 	subqt	#4,ST
 	addqt	#10,TMP
-	jump	T,(r27)
-	store	TMP,(ST)		; call r0 = _get_rand_entry(val_array)
-	store	r0, (r26)		; square_data[5-y][6-x].val = r0
+	jump	T,(r6)
+	store	TMP,(ST)		; call r13 = get_rand_entry(val_array)
+	store	r13, (r15)		; square_data[5-y][6-x].val = r13
 
-	div	r25,r0
-	move	r26, r14		; r14 = &square_data[5-y]6-x]
-	or	r0,r0
-	load	(r23),r0
+	div	r1,r13
+	; Stall progress until the divide is complete. This is needed to ensure
+	; G_REMAIN has been updated based on the latest div result.
+	or	r13,r13
+	load	(r5),r7
 
-	cmpq	#0,r0			; if ((remainder == 0) || (remainder == -multiple_of))
+	cmpq	#0,r7			; if ((remainder == 0) || (remainder == -multiple_of))
 	jr	EQ,.is_multiple
-	add	r25,r0
+	add	r1,r7
 	jr	EQ,.is_multiple
 	nop
 	jr	.not_multiple
-	moveq	#0, r19			; is_multiple = 0
+	moveq	#0, r2			; is_multiple = 0
 
 .is_multiple:
-	moveq	#1, r19			; is_multiple = 1;
+	moveq	#1, r2			; is_multiple = 1;
 
 .not_multiple:
 	movei	#.for_x5_0, TMP
-	store	r19, (r14+1)		; square_data[5-y][6-x].is_multiple = is_multiple
-	add	r19, r22		; num_multiples_remaining += is_multiple
-	subq	#1,r20			; x -= 1
-	moveq	#1,r19
-	store	r19,(r14+2)		; square_data[5-y][6-x].is_visible = 1
+	store	r2, (r15+1)		; square_data[5-y][6-x].is_multiple = is_multiple
+	add	r2, r0			; num_multiples_remaining += is_multiple
+	subq	#1,r3			; x -= 1
+	moveq	#1,r2
+	store	r2,(r15+2)		; square_data[5-y][6-x].is_visible = 1
 	jump	NE,(TMP)		; if (x != 0) goto .for_x5_0
-	addqt	#12, r26		; r26 = next(square_data)
+	addqt	#12, r15		; r15 = next(square_data)
 
 	movei	#.for_y4_0, TMP
-	subq	#1,r21
+	subq	#1,r4
 	jump	NE,(TMP)
 	nop
-
-	move	r22, r0			; return num_multiples_remaining
-
-	move	ST,r14
-	load	(ST),r19
-	load	(r14+1),r20
-	load	(r14+2),r21
-	load	(r14+3),r22
-	load	(r14+4),r23
-	load	(r14+5),r24
-	load	(r14+6),r25
-	load	(r14+7),r26
-	load	(r14+8),r27
-	addqt	#32,ST
-	addqt	#4,ST
 
 	load	(ST),TMP		; RTS
 	jump	T,(TMP)
 	addqt	#4,ST
-	.EVEN
 
 		.long
 
