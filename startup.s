@@ -100,7 +100,7 @@ PLAYER_HEIGHT	.equ	64
 		.globl	_scoreval_str
 		.globl	_win_str
 		.globl	_lose_str
-		.globl	_press_b_str
+		.globl	_press_c_str
 		.globl	_spriteData
 ; Externals
 		.extern	_start
@@ -612,7 +612,7 @@ _score_str:	.dc.b	'Score:',0
 _level_str:	.dc.b	'Level:',0
 _win_str:	.dc.b	'        Congratulations! You Won!',0
 _lose_str:	.dc.b	'That number is not a multiple! Game Over.',0
-_press_b_str:	.dc.b	'          Press "B" to continue',0
+_press_c_str:	.dc.b	'          Press "C" to continue',0
 
 		.long
 _m2_vals:	.dc.l	 2, 4, 6, 8,10,12,14,16,18,20, 1, 3, 5, 7, 9,11

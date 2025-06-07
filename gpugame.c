@@ -604,14 +604,14 @@ static void gpu_main(void)
     BLITTER_WAIT();
     draw_string(screen, sprite_frame, PACK_XY(40, 110), end_str);
     if (level_num < 8) {
-        draw_string(screen, sprite_frame, PACK_XY(40, 130), press_b_str);
+        draw_string(screen, sprite_frame, PACK_XY(40, 130), press_c_str);
     }
 
     oldPad1 = newPad1;
     do {
         newPad1 = *u235se_pad1;
 
-        if (((oldPad1 ^ newPad1) & newPad1) & U235SE_BUT_B) break;
+        if (((oldPad1 ^ newPad1) & newPad1) & U235SE_BUT_C) break;
 
         oldPad1 = newPad1;
     } while (1);
