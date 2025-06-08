@@ -83,6 +83,36 @@ void intToStr(char *str, unsigned long int val)
     sprintf(str, "%u", val);
 }
 
+void doSplash(const unsigned char *splashbmp) {
+    unsigned long oldTicks;
+
+    /* Idle the blitter */
+    while ((*(volatile long *)B_CMD & 1) == 0);
+
+    /* Wait until vblank */
+    oldTicks = ticks;
+    while (ticks == oldTicks);
+
+    *(volatile long *)A1_BASE = (unsigned long)screenbmp;
+    /* NOTE: Assumes BMP_WIDTH is phrase-aligned */
+    *(volatile long *)A1_FLAGS = XADDPHR|WID320|PITCH1|PIXEL16;
+    *(volatile long *)A1_PIXEL = 0;
+    *(volatile long *)A1_STEP = (1 << 16) | (-BMP_WIDTH & 0xffff);
+    *(volatile long *)A2_BASE = (unsigned long)splashbmp;
+    *(volatile long *)A2_FLAGS = XADDPHR|WID320|PITCH1|PIXEL16;
+    *(volatile long *)A2_PIXEL = 0;
+    *(volatile long *)A2_STEP = (1 << 16) | (-BMP_WIDTH & 0xffff);
+
+    *(volatile long *)B_COUNT = (BMP_HEIGHT << 16) | BMP_WIDTH;
+    *(volatile long *)B_CMD = SRCEN|UPDA1|UPDA2|LFU_REPLACE;
+
+    /* Set oldTicks to 5 seconds from when this function was entered */
+    oldTicks += 300;
+
+    /* Wait 5 seconds */
+    while (ticks < oldTicks);
+}
+
 int start()
 {
 	volatile	long	*pc=(void *)G_PC;
@@ -109,6 +139,8 @@ int start()
 #elif defined(USE_GD)
     GD_Install(GD_Bios);
 #endif
+
+    doSplash(u235sebmp);
 
     blitToGpu(G_RAM, gpugame_start, (long)gpugame_size);
     blitToGpu(gpuasm_dst, gpuasm_start, (long)gpuasm_size);

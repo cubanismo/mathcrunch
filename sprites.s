@@ -1,8 +1,11 @@
 		.data
 
 		.phrase
-_jagcrunchbmp::
-;40 x 32
+_jagcrunchbmp::	; 40 x 32
 		.incbin	"g_jagcrunch.cry"
+
+		.phrase
+_u235sebmp::	; 320 x 240
+		.incbin	"g_u235se.cry"
 
 		.end
