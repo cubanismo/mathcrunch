@@ -529,6 +529,7 @@ static void gpu_main(void)
                     break;
                 }
 
+                run68kCmd(CPUCMD_PLAY_SOUND);
                 score += 5;
                 int_to_str_gpu(scoreval_str, score);
                 num_multiples_remaining--;

@@ -43,7 +43,7 @@ $(PROGS): $(ALLOBJS)
 SPRITE_GFX = g_jagcrunch.cry g_u235se.cry
 GENERATED += $(SPRITE_GFX)
 
-music.o: *.mod
+music.o: *.mod *.pcm
 main.o: gpu_68k_shr.h u235se.h startup.h sprintf.h music.h
 gpugame.o: gpu_68k_shr.h startup.h music.h u235se.h sprites.h
 gpuasm.o: g_gpugame_codesize.inc

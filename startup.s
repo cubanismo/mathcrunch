@@ -109,6 +109,7 @@ PLAYER_HEIGHT	.equ	64
 		.extern _cpuCmd;
 		.extern _cpuData0;
 		.extern _cpuData1;
+		.extern samplebank;
 
 MAX_SPRITES	.equ	4			; 3 characters + the screen
 BMP_PHRASES 	.equ    (BMP_WIDTH/PPP) 	; Width in Phrases
@@ -288,6 +289,9 @@ InitU235se:
 
 		move.l	#U235SE_24KHZ, U235SE_playback_rate
 		move.l	#U235SE_24KHZ_PERIOD, U235SE_playback_period
+		; Mix music & SFX in mono
+		move.l	#0,U235SE_playbackmode
+
 		move.l	#D_RAM, D_PC
 		move.l	#RISCGO, D_CTRL
 		move.w	#$100, JOYSTICK
@@ -314,7 +318,8 @@ _ChangeMusic:
 		beq	.donechg
 
 		jsr	U235SE_modinit
-		move.l	#48, U235SE_music_vol	; Set volume to 48/63
+		move.l	#32, U235SE_music_vol	; Set music volume to 32/63
+		move.l	#63, U235SE_sfx_vol	; Set sound fx volume to 63/63
 		move.l	#U235SE_PLAYMONO, U235SE_playmod
 
 .donechg:
@@ -331,6 +336,25 @@ WaitStopGPU:
 		andi.w  #$1,d0
 		bne 	WaitStopGPU
 		move.l	#0,_gpu_running
+		rts
+
+PlaySound:
+		lea	playsoundcmds,a0
+		lea	U235SE_sfxplaylist_ptr, a1
+
+		move.l	#samplebank,d0
+		lsl.l	#4, d0
+		or.l	#$b, d0
+		move.l	d0, (a0)+
+
+		move.l	#$42,(a0)+
+
+		move.l	#0,(a0)
+
+		move.l	#playsoundcmds,d0
+		move.l	d0,(a1)
+
+		move.l	#playsoundcmds, (a1)
 		rts
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -508,6 +532,7 @@ HandleGpu:
 		HANDLE_CPUCMD 3, SetSpriteList
 		HANDLE_CPUCMD 4, _intToStr, d1, d2
 		HANDLE_CPUCMD 5, WaitStopGPU
+		HANDLE_CPUCMD 6, PlaySound
 
 		movem.l	(sp)+, d0-d2/a0-a1
 		rts
@@ -608,6 +633,7 @@ stopmuscmds:	.dc.l	$01
 		.dc.l	$21
 		.dc.l	$31
 		.dc.l	$0
+
 _score_str:	.dc.b	'Score:',0
 _level_str:	.dc.b	'Level:',0
 _win_str:	.dc.b	'        Congratulations! You Won!',0
@@ -672,6 +698,7 @@ _dsp_str:	.ds.b	128
 _levelnum_str:	.ds.b	8
 _levelname_str:	.ds.b	64
 _scoreval_str:	.ds.b	16
+playsoundcmds:	.ds.l	3
 
 		.phrase
 _screenbmp:	.ds.l	BMP_WIDTH*BMP_HEIGHT*(PPP>>1)*2
