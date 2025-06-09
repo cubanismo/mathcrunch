@@ -31,6 +31,7 @@ extern Animation *animations;
 /* sprite graphics */
 extern unsigned char jagcrunchbmp[];
 extern unsigned char u235sebmp[];
+extern unsigned char titlebmp[];
 
 /* sprite depths for make_sprite. Based on O_DEPTH* in jaguar.inc */
 #define SPRITE_DEPTH32 5

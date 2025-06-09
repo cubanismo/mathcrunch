@@ -141,6 +141,7 @@ int start()
 #endif
 
     doSplash(u235sebmp);
+    doSplash(titlebmp);
 
     blitToGpu(G_RAM, gpugame_start, (long)gpugame_size);
     blitToGpu(gpuasm_dst, gpuasm_start, (long)gpuasm_size);
