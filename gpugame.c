@@ -461,8 +461,6 @@ static void gpu_main(void)
     SET_SPRITE_X(player, screen_off_x + GRID_START_X);
     SET_SPRITE_Y(player, screen_off_y + GRID_START_Y);
 
-    screen->next = player;
-
     SetSpriteList(screen);
 
     do {
@@ -474,11 +472,19 @@ static void gpu_main(void)
      *   for (i = 0; i < 2; i++)
      * But that only iterates once because the compiler is buggy
      */
-    init_screen(screen, 0, bg_color);
     init_screen(screen, 1, bg_color);
+    /* Need BLITTER_WAIT() here if init_screen() doesn't end in draw_string */
+    set_sprite_frame(screen, 1);
+    oldTicks = ticks;
+    while (ticks == oldTicks);
 
-    /* Wait for blitter to idle */
-    BLITTER_WAIT();
+    init_screen(screen, 0, bg_color);
+    /* Need BLITTER_WAIT() here if init_screen() doesn't end in draw_string */
+    set_sprite_frame(screen, 0);
+    oldTicks = ticks;
+    while (ticks == oldTicks);
+
+    screen->next = player;
 
     while (num_multiples_remaining) {
         oldTicks = ticks;
