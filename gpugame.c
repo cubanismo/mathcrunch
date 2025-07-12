@@ -357,9 +357,6 @@ static void make_sprite(
 
     /* Fourth word: iwidth | trans */
     sprite->secondPhraseHighTemplate = (width >> 4) | ((flags & 1) << 15);
-
-    SET_SPRITE_X(sprite, 32);
-    SET_SPRITE_Y(sprite, 32);
 }
 
 static void set_sprite_frame(
@@ -419,7 +416,7 @@ static void init_screen(Sprite *screen, unsigned int frame, unsigned int color)
      *
      * The compiler has two bugs that standard for (0..N) for loops tend to hit:
      *
-     * -As noted in comments above, its math is always off by one for such loops
+     * -As noted in comments above, its math is always off by one for such lsoops
      * -When it uses cmpq for the loop condition, it interprets the order of the
      *  parameters backwards (cmpq's parameters are reversed compared to those
      *  of the similar cmp, sub, and subq instructions, but the compiler behaves
@@ -473,15 +470,21 @@ static void gpu_main(void)
     SET_SPRITE_X(screen, screen_off_x);
     SET_SPRITE_Y(screen, screen_off_y);
 
-    make_sprite(player,
-                jagcrunchbmp,
-                PLAYER_WIDTH,
-                PLAYER_HEIGHT,
-                SPRITE_DEPTH16,
-                SPRITE_SINGLE_BUFFERED | SPRITE_TRANSPARENT);
+    for (i = 1; i < (4 /* Work around compiler bug */ + 1); i++) {
+        Sprite *tmpSprite = &spriteData[i];
 
-    SET_SPRITE_X(player, screen_off_x + GRID_START_X);
-    SET_SPRITE_Y(player, screen_off_y + GRID_START_Y);
+        make_sprite(tmpSprite,
+                    jagcrunchbmp,
+                    PLAYER_WIDTH,
+                    PLAYER_HEIGHT,
+                    SPRITE_DEPTH16,
+                    SPRITE_SINGLE_BUFFERED | SPRITE_TRANSPARENT);
+
+        SET_SPRITE_X(tmpSprite, screen_off_x + GRID_START_X + SHORT_MUL(PLAYER_WIDTH, i - 1));
+        SET_SPRITE_Y(tmpSprite, screen_off_y + GRID_START_Y);
+
+        spriteData[i - 1].next = tmpSprite;
+    }
 
     SetSpriteList(screen);
 
@@ -505,8 +508,6 @@ static void gpu_main(void)
     set_sprite_frame(screen, 0);
     oldTicks = ticks;
     while (ticks == oldTicks);
-
-    screen->next = player;
 
     while (num_multiples_remaining) {
         oldTicks = ticks;
