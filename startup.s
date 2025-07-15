@@ -93,6 +93,7 @@ PLAYER_HEIGHT	.equ	64
 		.globl	_ticks
 		.globl	_gpu_running
 		.globl	_screenbmp
+		.globl	_enemy_bitmap
 		.globl	_m2_vals
 		.globl	_m3_vals
 		.globl	_m4_vals
@@ -723,5 +724,7 @@ playsoundcmds:	.ds.l	3
 
 		.phrase
 _screenbmp:	.ds.l	BMP_WIDTH*BMP_HEIGHT*(PPP>>1)*2
+		.phrase
+_enemy_bitmap:	.ds.l	PLAYER_WIDTH*PLAYER_HEIGHT*(PPP>>1)*2
 
 		.end

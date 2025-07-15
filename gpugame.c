@@ -474,7 +474,7 @@ static void gpu_main(void)
         Sprite *tmpSprite = &spriteData[i];
 
         make_sprite(tmpSprite,
-                    jagcrunchbmp,
+                    spritebmps[i-1],
                     PLAYER_WIDTH,
                     PLAYER_HEIGHT,
                     SPRITE_DEPTH16,

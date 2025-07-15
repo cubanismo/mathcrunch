@@ -20,6 +20,8 @@
 
 		.data
 
+		.extern _enemy_bitmap
+
 		.phrase
 _jagcrunchbmp::	; 40 x 32
 		.incbin	"g_jagcrunch.cry"
@@ -31,5 +33,10 @@ _u235sebmp::	; 320 x 240
 		.phrase
 _titlebmp::	; 320 x 240
 		.incbin	"g_title.cry"
+
+		.phrase
+_spritebmps::	dc.l _jagcrunchbmp
+		dc.l _enemy_bitmap
+		dc.l _enemy_bitmap
 
 		.end

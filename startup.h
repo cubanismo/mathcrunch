@@ -25,6 +25,7 @@
 
 extern volatile unsigned long ticks;
 extern unsigned char screenbmp[];
+extern unsigned char enemy_bitmap[];
 extern char gpu_str[];
 extern char dsp_str[];
 extern char level_str[];
