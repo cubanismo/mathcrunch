@@ -7,7 +7,6 @@ GDLIB := 0
 
 OBJS=startup.o main.o u235sec.o sprintf.o util.o $(CGPUOBJS) music.o sprites.o gpuasm.o
 
-CFLAGS_JRISC += -mstk=4000
 CGPUOBJS=gpugame.o
 
 ifeq ($(SKUNKLIB),1)
@@ -23,7 +22,7 @@ endif
 CFLAGS += -fno-builtin
 
 # Additional AGPU CFLAGS
-CFLAGS_JRISC += -fno-builtin
+CFLAGS_JRISC += -fno-builtin -mstk=4000
 
 PROGS = mathcrunch.cof
 
