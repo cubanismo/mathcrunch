@@ -59,7 +59,7 @@ ALLOBJS = $(OBJS) u235se/dsp.obj
 $(PROGS): $(ALLOBJS)
 	$(LINK) $(LINKFLAGS) -o $@ $^
 
-SPRITE_GFX = g_jagcrunch.cry g_u235se.cry g_title.cry
+SPRITE_GFX = g_jagcrunch.cry g_u235se.cry g_title.cry g_enemy2.cry
 GENERATED += $(SPRITE_GFX)
 
 music.o: *.mod *.pcm

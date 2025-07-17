@@ -80,8 +80,8 @@
 PPP     	.equ    4      			; Pixels per Phrase (1-bit)
 BMP_WIDTH   	.equ    320     		; Width in Pixels
 BMP_HEIGHT  	.equ    240    			; Height in Pixels
-PLAYER_WIDTH	.equ	64
-PLAYER_HEIGHT	.equ	64
+PLAYER_WIDTH	.equ	40
+PLAYER_HEIGHT	.equ	32
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; End of STARTUP PICTURE CONFIGURATION
@@ -93,7 +93,6 @@ PLAYER_HEIGHT	.equ	64
 		.globl	_ticks
 		.globl	_gpu_running
 		.globl	_screenbmp
-		.globl	_enemy_bitmap
 		.globl	_m2_vals
 		.globl	_m3_vals
 		.globl	_m4_vals
@@ -724,7 +723,5 @@ playsoundcmds:	.ds.l	3
 
 		.phrase
 _screenbmp:	.ds.l	BMP_WIDTH*BMP_HEIGHT*(PPP>>1)*2
-		.phrase
-_enemy_bitmap:	.ds.l	PLAYER_WIDTH*PLAYER_HEIGHT*(PPP>>1)*2
 
 		.end
