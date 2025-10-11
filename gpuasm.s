@@ -348,6 +348,8 @@ done:
 
 ; get_rand_entry: Return a random number from a 64-entry table
 ;
+; Contributed by 42Bastian Schick
+;
 ; NOTE: This function does not use the C calling convention for its parameters!
 ;       However, it does use the regular C call/return mechanism. To ensure no
 ;       C code tries to call this function by mistake, it does not have a
@@ -361,37 +363,27 @@ done:
 ;   - r13: The randomly-chosen value from the array
 ;
 ;   Clobbers:
-;   - r12
-;   - XXX r11, r10 - for the arbitrary delay loop.
+;   - r11, r10
 ;
 ; If adding usage of additional registers, ensure all callers (namely
 ; _pick_numbers) are updated accordingly.
 get_rand_entry:
-	movei	#U235SE_rng, r13
-	load	(r13), r12
-	movei	#$fc, r13
-	and	r13, r12
-	load	(r14+r12), r13
+	movei	#rnd,r13
+	load	(r13),r11
 
-	; XXX throw in some arbitrary delay to get better random numbers
-	; out of the DSP:
-	moveq	#31, r11
-.big:
-	moveq	#31, r10
-.little:
-	or	r12, r12
-	movei	#_square_data, TMP
-	load	(TMP), r12
-	subq	#1, r10
-	jr	NE, .little
-	nop
-	subq	#1, r11
-	jr	NE, .big
-	nop
-
+	move	r11,r10
+	rorq	#7,r10
+	xor	r11,r10
+	move	r10,r11
+	shlq	#9,r10
+	xor	r10,r11
 	load	(ST),TMP		; RTS
-	jump	T,(TMP)
+	store	r11,(r13)
+	shlq	#26,r11
 	addqt	#4,ST
+	shrq	#24,r11
+	jump	(TMP)
+	load	(r14+r11),r13
 
 ; Generate the numbers that will populate the game grid. This is a more or less
 ; completely hand-coded implementation of this C code:
@@ -487,6 +479,8 @@ _pick_numbers:
 	addqt	#4,ST
 
 		.long
+
+rnd:	.dc.l	$3543532
 
 		.68000
 _gpuasm_end:
