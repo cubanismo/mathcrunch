@@ -45,6 +45,8 @@ volatile unsigned long level_num;
 
 Animation animationData[4];
 Animation *animations;
+Timer timerData[4];
+Timer *timers;
 
 unsigned long count;
 

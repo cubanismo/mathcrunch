@@ -46,9 +46,17 @@ typedef struct Animation {
     unsigned int endY;                          /* Off 16 */
 } Animation; /* Size = 20 */
 
+typedef struct Timer {
+    struct Timer *next;
+    struct Animation *animation;
+    unsigned int endTick;
+} Timer;
+
 extern Sprite spriteData[];
 extern Animation animationData[];
 extern Animation *animations;
+extern Timer timerData[];
+extern Timer *timers;
 
 /* sprite graphics */
 extern unsigned char jagcrunchbmp[];

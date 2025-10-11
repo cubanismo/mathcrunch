@@ -47,6 +47,21 @@ static void myclamp(int *val, int min, int max) {
     if (*val > max) *val = max;
 }
 
+static void update_timers(void)
+{
+    Timer **t = &timers;
+
+    while (*t) {
+        if (ticks >= (*t)->endTick) {
+            (*t)->animation = animations;
+            animations = (*t)->animation;
+            *t = (*t)->next;
+        } else {
+            t = &(*t)->next;
+        }
+    }
+}
+
 void playlevel(void)
 {
     unsigned int oldTicks;
@@ -65,6 +80,7 @@ void playlevel(void)
         oldTicks = ticks;
         while (ticks == oldTicks);
 
+        update_timers();
         update_animations();
 
         sprite_frame = !sprite_frame;

@@ -222,6 +222,7 @@ void levelinit(void)
     Sprite *screen = &spriteData[0];
 
     animations = NULL;
+    timers = NULL;
 
     make_sprite(screen,
                 screenbmp,
