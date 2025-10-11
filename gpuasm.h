@@ -23,6 +23,8 @@
 #ifndef GPUASM_H_
 #define GPUASM_H_
 
+#include "sprites.h"
+
 extern void draw_string_off(const Sprite *sprite,
                             unsigned long coords,
                             void *str,
@@ -30,5 +32,13 @@ extern void draw_string_off(const Sprite *sprite,
 extern void update_animations(void);
 extern unsigned int pick_numbers(const unsigned long *val_array,
                                  unsigned int multiple_of);
+
+static inline void draw_string(const Sprite *sprite,
+                               unsigned int frameNum,
+                               unsigned long coords,
+                               void *str)
+{
+    draw_string_off(sprite, coords, str, calc_frame_offset(sprite->frameSize, frameNum));
+}
 
 #endif /* GPUASM_H_ */

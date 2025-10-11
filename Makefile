@@ -27,7 +27,7 @@ GDLIB := 0
 
 OBJS=startup.o main.o u235sec.o sprintf.o util.o $(CGPUOBJS) music.o sprites.o gpuasm.o
 
-CGPUOBJS=gpugame.o
+CGPUOBJS=gpucommon.o gpugame.o
 
 ifeq ($(SKUNKLIB),1)
 	OBJS += skunkc.o skunk.o
@@ -68,8 +68,10 @@ gpugame.o: gpu_68k_shr.h startup.h music.h u235se.h sprites.h
 gpuasm.o: g_gpugame_codesize.inc
 sprites.o: $(SPRITE_GFX)
 
+gpugame.o: CFLAGS_JRISC += -mstk=0 -morg=f031a8
+
 g_gpugame_codesize.inc: gpugame.o
-	@echo "GPUGAME_CODESIZE .equ $$`symval $< _gpugame_size`" | tee $@
+	@echo "GPUGAME_CODESIZE .equ (\$$`symval $< _gpugame_size` + \$$1A8)" | tee $@
 GENERATED += g_gpugame_codesize.inc
 
 g_%.cry:%.tga

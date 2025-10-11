@@ -165,7 +165,8 @@ int start()
     doSplash(u235sebmp);
     doSplash(titlebmp);
 
-    blitToGpu(G_RAM, gpugame_start, (long)gpugame_size);
+    blitToGpu(G_RAM, gpucommon_start, (long)gpucommon_size);
+    blitToGpu(((unsigned char *)G_RAM)+0x1a8, gpugame_start, (long)gpugame_size);
     blitToGpu(gpuasm_dst, gpuasm_start, (long)gpuasm_size);
     printf("Done blitting GPU code\n");
 

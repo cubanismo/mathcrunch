@@ -61,6 +61,9 @@ extern volatile unsigned long cpuCmd;
 extern void *volatile cpuData0;
 extern void *volatile cpuData1;
 
+extern unsigned long gpucommon_start[];
+extern unsigned long gpucommon_end[];
+extern unsigned long gpucommon_size[];
 extern unsigned long gpugame_start[];
 extern unsigned long gpugame_end[];
 extern unsigned long gpugame_size[];
