@@ -29,6 +29,8 @@ OBJS=startup.o main.o u235sec.o sprintf.o util.o $(CGPUOBJS) music.o sprites.o g
 
 CGPUOBJS=gpucommon.o gpugame.o
 
+GPUCOMMON_DATA_SCRIPT=g_gpucommon_data.sh
+
 ifeq ($(SKUNKLIB),1)
 	OBJS += skunkc.o skunk.o
 endif
@@ -64,14 +66,14 @@ GENERATED += $(SPRITE_GFX)
 
 music.o: *.mod *.pcm
 main.o: gpu_68k_shr.h u235se.h startup.h sprintf.h music.h
-gpugame.o: gpu_68k_shr.h startup.h music.h u235se.h sprites.h
+gpugame.o: gpu_68k_shr.h startup.h music.h u235se.h sprites.h gpucommon.o
 gpuasm.o: g_gpugame_codesize.inc
 sprites.o: $(SPRITE_GFX)
 
-gpugame.o: CFLAGS_JRISC += -mstk=0 -morg=f031a8
+gpugame.o: CFLAGS_JRISC += -mstk=0 -morg=`sh codedata.sh gpucommon.o _gpucommon_size endaddr`
 
 g_gpugame_codesize.inc: gpugame.o
-	@echo "GPUGAME_CODESIZE .equ (\$$`symval $< _gpugame_size` + \$$1A8)" | tee $@
+	@echo "GPUGAME_CODESIZE .equ (\$$`symval $< _gpugame_size` + \$$`sh codedata.sh gpucommon.o _gpucommon_size size`)" | tee $@
 GENERATED += g_gpugame_codesize.inc
 
 g_%.cry:%.tga
