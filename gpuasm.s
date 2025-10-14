@@ -28,7 +28,7 @@ GPUCODE_OFFSET	.equ	(GPUGAME_CODESIZE + 7) & ~7	; Phrase-align this file's code
 		.globl	_gpuasm_start
 		.globl	_gpuasm_end
 		.globl	_gpuasm_size
-		.globl	_gpuasm_dst
+		.globl	_gpuasm_loc
 		.globl	_update_animations
 		.globl	_pick_numbers
 
@@ -45,7 +45,7 @@ _gpuasm_start:
 ST		.regequ	r31 ; February 1995 compiler build
 TMP		.regequ	r16
 
-_gpuasm_dst:
+_gpuasm_loc:
 
 ; These are all hard-coded from the clr6x12.jft font for now.
 CHR_WIDTH	.equ	6

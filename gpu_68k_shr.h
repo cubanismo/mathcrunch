@@ -64,13 +64,15 @@ extern void *volatile cpuData1;
 extern unsigned long gpucommon_start[];
 extern unsigned long gpucommon_end[];
 extern unsigned long gpucommon_size[];
+extern unsigned long gpucommon_loc[];
 extern unsigned long gpugame_start[];
 extern unsigned long gpugame_end[];
 extern unsigned long gpugame_size[];
+extern unsigned long gpugame_loc[];
 extern unsigned long gpuasm_start[];
 extern unsigned long gpuasm_end[];
 extern unsigned long gpuasm_size[];
-extern unsigned long gpuasm_dst[];
+extern unsigned long gpuasm_loc[];
 
 extern void gpu_start(void);
 
