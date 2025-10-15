@@ -42,6 +42,18 @@ typedef struct {
     unsigned long is_visible;
 } SquareData;
 
+typedef struct {
+    void *codeSrc;
+    void *codeDst;
+    unsigned long codeSize;
+} GpuCode;
+
+typedef struct {
+    GpuCode cCode;
+    GpuCode asmCode;
+    void (*startFunc)(void);
+} GpuOverlay;
+
 /* If these are changed, update ASM in gpuasm.s */
 #define GRID_BOXES_X (6)
 #define GRID_BOXES_Y (5)

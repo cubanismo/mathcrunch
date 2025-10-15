@@ -34,6 +34,8 @@
 #include "sprintf.h"
 #include "sprites.h"
 
+#define NULL ((void *)0)
+
 volatile unsigned long spinCount;
 volatile unsigned long blitCount;
 
@@ -67,7 +69,37 @@ unsigned long *m_vals[] = {
     &m9_vals[0],
 };
 
-static void blitToGpu(void *dst, void *src, unsigned long size)
+const GpuOverlay gpu_common = {
+    { /* C code */
+        gpucommon_start,
+        gpucommon_loc,
+        (unsigned long)gpucommon_size,
+    },
+    { /* Assembly code */
+        NULL,
+        NULL,
+        0,
+    },
+
+    &gpu_start,
+};
+
+const GpuOverlay gpu_game = {
+    { /* C code */
+        gpugame_start,
+        gpugame_loc,
+        (unsigned long)gpugame_size,
+    },
+    { /* Assembly code */
+        gpuasm_start,
+        gpuasm_loc,
+        (unsigned long)gpuasm_size,
+    },
+
+    NULL,
+};
+
+static void blitToGpu(const void *dst, const void *src, unsigned long size)
 {
     printf("Blitting GPU code from 0x%08x size 0x%08x to 0x%08x\n", (long)src, size, (long)dst);
     while ((*(volatile long *)B_CMD & 1) == 0);
@@ -89,6 +121,14 @@ static void blitToGpu(void *dst, void *src, unsigned long size)
     *B_CMD = SRCEN|UPDA1|UPDA2|LFU_REPLACE;
 
     while ((*(volatile long *)B_CMD & 1) == 0);
+}
+
+static void blitGpuOverlay(const GpuOverlay *code)
+{
+    blitToGpu(code->cCode.codeDst, code->cCode.codeSrc, code->cCode.codeSize);
+    if (code->asmCode.codeSize) {
+        blitToGpu(code->asmCode.codeDst, code->asmCode.codeSrc, code->asmCode.codeSize);
+    }
 }
 
 void printStats(void)
@@ -165,9 +205,8 @@ int start()
     doSplash(u235sebmp);
     doSplash(titlebmp);
 
-    blitToGpu(gpucommon_loc, gpucommon_start, (long)gpucommon_size);
-    blitToGpu(gpugame_loc, gpugame_start, (long)gpugame_size);
-    blitToGpu(gpuasm_loc, gpuasm_start, (long)gpuasm_size);
+    blitGpuOverlay(&gpu_common);
+    blitGpuOverlay(&gpu_game);
     printf("Done blitting GPU code\n");
 
     while (++level_num < 9) {
@@ -184,7 +223,7 @@ int start()
         multiple_of = level_num + 1;
         gpu_running = 1;
 
-        *pc = (unsigned long)&gpu_start;
+        *pc = (unsigned long)gpu_common.startFunc;
         *ctrl = GPUGO;
 
         while (gpu_running) {
