@@ -86,7 +86,4 @@ GENERATED += g_gpugame_codesize.inc
 g_%.cry:%.tga
 	 tga2cry -binary -f cry -o $@ $<
 
-gpugame.s: gpugame.c
-	gcc263 -DJAGUAR -DUSE_SKUNK -I/home/jjones/Documents/Projects/jaguar-sdk/jaguar/include -I/home/jjones/Documents/Projects/jaguar-sdk/jaguar/skunk/include -b agpu -O2 -fomit-frame-pointer -fno-builtin -S gpugame.c
-
 include $(JAGSDK)/tools/build/jagrules.mk
