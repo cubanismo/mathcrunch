@@ -202,5 +202,5 @@ void playlevel(void)
         level_num = 0;
     }
 
-    run68kCmd(CPUCMD_STOP_GPU);
+    nextOverlay = NULL;
 }

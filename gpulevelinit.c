@@ -272,5 +272,5 @@ void levelinit(void)
     oldTicks = ticks;
     while (ticks == oldTicks);
 
-    run68kCmd(CPUCMD_STOP_GPU);
+    nextOverlay = &gpu_playlevel;
 }

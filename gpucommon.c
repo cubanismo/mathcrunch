@@ -34,14 +34,22 @@ volatile unsigned long cpuCmd;
 void *volatile cpuData0;
 void *volatile cpuData1;
 
+static void blitOverlay(const GpuOverlay *code);
+
 /* This has to be the first function, since gcc sets up the stack in the first function */
 void gpu_start(void)
 {
     /* Stuff that the C startup code would normally do */
     cpuCmd = CPUCMD_IDLE;
     cpuData0 = 0;
+    cpuData1 = 0;
 
-    gpu_main();
+    while (nextOverlay) {
+        blitOverlay(nextOverlay);
+        nextOverlay->startFunc();
+    }
+
+    run68kCmd(CPUCMD_STOP_GPU);
 }
 
 unsigned int calc_frame_offset(unsigned int frameSize, unsigned int frameNum)
@@ -160,4 +168,37 @@ void set_sprite_frame(
 {
     /* First phrase high dword: link (0) | address (data) */
     sprite->firstPhraseHighTemplate = ADDR_TO_OBJ_BITMAP(sprite->surfAddr + calc_frame_offset(sprite->frameSize, frame));
+}
+
+static void phraseBlit(const void *dst, const void *src, unsigned long size)
+{
+    BLITTER_WAIT();
+
+    /* Use 32-bit version of GPU memory */
+    dst = (unsigned char *)dst + 0x8000;
+
+    /* Make everything volatile so the compiler doesn't reorder the writes */
+
+    *(volatile long *)A1_CLIP = 0; /* Don't clip blitter writes */
+    *(volatile long *)A1_BASE = (unsigned long)dst;
+    *(volatile long *)A2_BASE = (unsigned long)src;
+
+    *(volatile long *)A1_FLAGS = XADDPHR|PIXEL32|WID2048|PITCH1;
+	*(volatile long *)A2_FLAGS = XADDPHR|PIXEL32|WID2048|PITCH1;
+    *(volatile long *)A1_PIXEL = 0;
+    *(volatile long *)A2_PIXEL = 0;
+
+    *(volatile long *)B_COUNT = ((size + 3) >> 2) | (0x1 << 16);
+
+    *(volatile long *)B_CMD = SRCEN|UPDA1|UPDA2|LFU_REPLACE;
+
+    BLITTER_WAIT();
+}
+
+static void blitOverlay(const GpuOverlay *code)
+{
+    phraseBlit(code->cCode.codeDst, code->cCode.codeSrc, code->cCode.codeSize);
+    if (code->asmCode.codeSize) {
+        phraseBlit(code->asmCode.codeDst, code->asmCode.codeSrc, code->asmCode.codeSize);
+    }
 }

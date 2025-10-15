@@ -51,7 +51,7 @@ unsigned long count;
 unsigned long *mult_vals;
 unsigned long multiple_of;
 
-void (*gpu_main)(void) = NULL;
+const GpuOverlay *nextOverlay = NULL;
 
 #if defined(USE_GD)
 static u8 GD_Bios[1024 * 4];
@@ -126,18 +126,20 @@ static void blitToGpu(const void *dst, const void *src, unsigned long size)
     /* Use 32-bit version of GPU memory */
     dst = (unsigned char *)dst + 0x8000;
 
-    *A1_CLIP = 0; // Don't clip blitter writes
-    *A1_BASE = (unsigned long)dst;
-    *A2_BASE = (unsigned long)src;
+    /* Make everything volatile so the compiler doesn't reorder the writes */
 
-    *A1_FLAGS = XADDPHR|PIXEL32|WID2048|PITCH1;
-	*A2_FLAGS = XADDPHR|PIXEL32|WID2048|PITCH1;
-    *A1_PIXEL = 0;
-    *A2_PIXEL = 0;
+    *(volatile long *)A1_CLIP = 0; // Don't clip blitter writes
+    *(volatile long *)A1_BASE = (unsigned long)dst;
+    *(volatile long *)A2_BASE = (unsigned long)src;
 
-    *B_COUNT = ((size + 3) >> 2) | (0x1 << 16);
+    *(volatile long *)A1_FLAGS = XADDPHR|PIXEL32|WID2048|PITCH1;
+	*(volatile long *)A2_FLAGS = XADDPHR|PIXEL32|WID2048|PITCH1;
+    *(volatile long *)A1_PIXEL = 0;
+    *(volatile long *)A2_PIXEL = 0;
 
-    *B_CMD = SRCEN|UPDA1|UPDA2|LFU_REPLACE;
+    *(volatile long *)B_COUNT = ((size + 3) >> 2) | (0x1 << 16);
+
+    *(volatile long *)B_CMD = SRCEN|UPDA1|UPDA2|LFU_REPLACE;
 
     while ((*(volatile long *)B_CMD & 1) == 0);
 }
@@ -155,8 +157,7 @@ static void runGpuOverlay(const GpuOverlay *code)
     volatile	long	*pc=(void *)G_PC;
     volatile	long	*ctrl=(void *)G_CTRL;
 
-    blitGpuOverlay(code);
-    gpu_main = code->startFunc;
+    nextOverlay = code;
     gpu_running = 1;
 
     *pc = (unsigned long)gpu_common.startFunc;
@@ -256,9 +257,6 @@ int start()
         multiple_of = level_num + 1;
 
         runGpuOverlay(&gpu_levelinit);
-        printf("Level init complete\n");
-        runGpuOverlay(&gpu_playlevel);
-        printf("Play level complete\n");
     }
 
     /* The user won */

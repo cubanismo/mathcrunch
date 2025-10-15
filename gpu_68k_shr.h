@@ -54,6 +54,8 @@ typedef struct {
     void (*startFunc)(void);
 } GpuOverlay;
 
+extern const GpuOverlay gpu_playlevel;
+
 /* If these are changed, update ASM in gpuasm.s */
 #define GRID_BOXES_X (6)
 #define GRID_BOXES_Y (5)
@@ -68,7 +70,7 @@ extern char tmp_str[];
 extern unsigned long *mult_vals;
 extern unsigned long multiple_of;
 extern unsigned int num_multiples_remaining;
-extern void (*gpu_main)(void);
+extern const GpuOverlay *nextOverlay;
 
 /* gpugame.c */
 extern volatile unsigned long cpuCmd;
