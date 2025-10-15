@@ -114,6 +114,8 @@ extern void blit_color(const Sprite *dst, unsigned int frame_num, unsigned int c
 
 extern void run68kCmd(unsigned int cmd);
 
-extern  void gpu_main(void);
+extern void int_to_str_gpu(char *str, unsigned int val);
+
+extern void set_sprite_frame(Sprite *sprite, unsigned int frame);
 
 #endif /* GPUCOMMON_H_ */

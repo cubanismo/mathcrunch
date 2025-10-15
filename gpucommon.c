@@ -142,3 +142,22 @@ void run68kCmd(unsigned int cmd)
         while (cpuCmd != 0);
     }
 }
+
+void int_to_str_gpu(char *str, unsigned int val)
+{
+    cpuData0 = str;
+    cpuData1 = (void *)val;
+    run68kCmd(CPUCMD_INT_TO_STR);
+}
+
+/* Shift address into place for first phrase high word of bitmap object*/
+#define ADDR_TO_OBJ_BITMAP(addr_) ((unsigned int)(addr_) << (11-3))
+
+void set_sprite_frame(
+    Sprite *sprite,
+    unsigned int frame
+)
+{
+    /* First phrase high dword: link (0) | address (data) */
+    sprite->firstPhraseHighTemplate = ADDR_TO_OBJ_BITMAP(sprite->surfAddr + calc_frame_offset(sprite->frameSize, frame));
+}

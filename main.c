@@ -51,6 +51,8 @@ unsigned long count;
 unsigned long *mult_vals;
 unsigned long multiple_of;
 
+void (*gpu_main)(void) = NULL;
+
 #if defined(USE_GD)
 static u8 GD_Bios[1024 * 4];
 #endif
@@ -69,6 +71,8 @@ unsigned long *m_vals[] = {
     &m9_vals[0],
 };
 
+unsigned int num_multiples_remaining;
+
 const GpuOverlay gpu_common = {
     { /* C code */
         gpucommon_start,
@@ -84,11 +88,11 @@ const GpuOverlay gpu_common = {
     &gpu_start,
 };
 
-const GpuOverlay gpu_game = {
+const GpuOverlay gpu_levelinit = {
     { /* C code */
-        gpugame_start,
-        gpugame_loc,
-        (unsigned long)gpugame_size,
+        gpulevelinit_start,
+        gpulevelinit_loc,
+        (unsigned long)gpulevelinit_size,
     },
     { /* Assembly code */
         gpuasm_start,
@@ -96,7 +100,22 @@ const GpuOverlay gpu_game = {
         (unsigned long)gpuasm_size,
     },
 
-    NULL,
+    &levelinit,
+};
+
+const GpuOverlay gpu_playlevel = {
+    { /* C code */
+        gpuplaylevel_start,
+        gpuplaylevel_loc,
+        (unsigned long)gpuplaylevel_size,
+    },
+    { /* Assembly code */
+        gpuasm_start,
+        gpuasm_loc,
+        (unsigned long)gpuasm_size,
+    },
+
+    &playlevel,
 };
 
 static void blitToGpu(const void *dst, const void *src, unsigned long size)
@@ -128,6 +147,23 @@ static void blitGpuOverlay(const GpuOverlay *code)
     blitToGpu(code->cCode.codeDst, code->cCode.codeSrc, code->cCode.codeSize);
     if (code->asmCode.codeSize) {
         blitToGpu(code->asmCode.codeDst, code->asmCode.codeSrc, code->asmCode.codeSize);
+    }
+}
+
+static void runGpuOverlay(const GpuOverlay *code)
+{
+    volatile	long	*pc=(void *)G_PC;
+    volatile	long	*ctrl=(void *)G_CTRL;
+
+    blitGpuOverlay(code);
+    gpu_main = code->startFunc;
+    gpu_running = 1;
+
+    *pc = (unsigned long)gpu_common.startFunc;
+    *ctrl = GPUGO;
+
+    while (gpu_running) {
+        stop68k();
     }
 }
 
@@ -177,8 +213,6 @@ void doSplash(const unsigned char *splashbmp) {
 
 int start()
 {
-	volatile	long	*pc=(void *)G_PC;
-	volatile	long	*ctrl=(void *)G_CTRL;
     long unsigned musicAddr;
 
     level_num = 0;
@@ -206,8 +240,7 @@ int start()
     doSplash(titlebmp);
 
     blitGpuOverlay(&gpu_common);
-    blitGpuOverlay(&gpu_game);
-    printf("Done blitting GPU code\n");
+    printf("Done blitting GPU common code\n");
 
     while (++level_num < 9) {
         sprintf(levelnum_str, "%u", level_num);
@@ -221,14 +254,11 @@ int start()
 
         mult_vals = m_vals[level_num - 1];
         multiple_of = level_num + 1;
-        gpu_running = 1;
 
-        *pc = (unsigned long)gpu_common.startFunc;
-        *ctrl = GPUGO;
-
-        while (gpu_running) {
-            stop68k();
-        }
+        runGpuOverlay(&gpu_levelinit);
+        printf("Level init complete\n");
+        runGpuOverlay(&gpu_playlevel);
+        printf("Play level complete\n");
     }
 
     /* The user won */

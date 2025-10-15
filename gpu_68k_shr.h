@@ -67,6 +67,8 @@ extern SquareData square_data[GRID_BOXES_Y][GRID_BOXES_X];
 extern char tmp_str[];
 extern unsigned long *mult_vals;
 extern unsigned long multiple_of;
+extern unsigned int num_multiples_remaining;
+extern void (*gpu_main)(void);
 
 /* gpugame.c */
 extern volatile unsigned long cpuCmd;
@@ -77,15 +79,21 @@ extern unsigned long gpucommon_start[];
 extern unsigned long gpucommon_end[];
 extern unsigned long gpucommon_size[];
 extern unsigned long gpucommon_loc[];
-extern unsigned long gpugame_start[];
-extern unsigned long gpugame_end[];
-extern unsigned long gpugame_size[];
-extern unsigned long gpugame_loc[];
+extern unsigned long gpulevelinit_start[];
+extern unsigned long gpulevelinit_end[];
+extern unsigned long gpulevelinit_size[];
+extern unsigned long gpulevelinit_loc[];
+extern unsigned long gpuplaylevel_start[];
+extern unsigned long gpuplaylevel_end[];
+extern unsigned long gpuplaylevel_size[];
+extern unsigned long gpuplaylevel_loc[];
 extern unsigned long gpuasm_start[];
 extern unsigned long gpuasm_end[];
 extern unsigned long gpuasm_size[];
 extern unsigned long gpuasm_loc[];
 
 extern void gpu_start(void);
+extern void levelinit(void);
+extern void playlevel(void);
 
 #endif /* GPU_68K_SHR_H_ */
