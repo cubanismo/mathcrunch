@@ -25,6 +25,10 @@ _jagcrunchbmp::	; 40 x 32
 		.incbin	"g_jagcrunch.cry"
 
 		.phrase
+_enemy1bmp::	; 40 x 32
+		.incbin	"g_enemy1.cry"
+
+		.phrase
 _enemy2bmp::	; 40 x 32
 		.incbin	"g_enemy2.cry"
 
@@ -38,7 +42,7 @@ _titlebmp::	; 320 x 240
 
 		.phrase
 _spritebmps::	dc.l _jagcrunchbmp
-		dc.l _enemy2bmp
+		dc.l _enemy1bmp
 		dc.l _enemy2bmp
 
 		.end
