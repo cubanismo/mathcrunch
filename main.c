@@ -48,8 +48,7 @@ Animation *animations;
 Timer timerData[4];
 Timer *timers;
 
-unsigned long enemy_x[2];
-unsigned long enemy_y[2];
+Enemy enemy[2];
 
 unsigned long count;
 
@@ -138,7 +137,7 @@ static void blitToGpu(const void *dst, const void *src, unsigned long size)
     *(volatile long *)A2_BASE = (unsigned long)src;
 
     *(volatile long *)A1_FLAGS = XADDPHR|PIXEL32|WID2048|PITCH1;
-	*(volatile long *)A2_FLAGS = XADDPHR|PIXEL32|WID2048|PITCH1;
+    *(volatile long *)A2_FLAGS = XADDPHR|PIXEL32|WID2048|PITCH1;
     *(volatile long *)A1_PIXEL = 0;
     *(volatile long *)A2_PIXEL = 0;
 

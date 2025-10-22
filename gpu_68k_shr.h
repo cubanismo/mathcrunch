@@ -54,6 +54,12 @@ typedef struct {
     void (*startFunc)(void);
 } GpuOverlay;
 
+typedef struct Enemy {
+    unsigned long x;
+    unsigned long y;
+    unsigned long visible;
+} Enemy;
+
 extern const GpuOverlay gpu_playlevel;
 
 /* If these are changed, update ASM in gpuasm.s */
@@ -71,8 +77,7 @@ extern unsigned long *mult_vals;
 extern unsigned long multiple_of;
 extern unsigned int num_multiples_remaining;
 extern const GpuOverlay *nextOverlay;
-extern unsigned long enemy_x[2];
-extern unsigned long enemy_y[2];
+extern Enemy enemy[2];
 
 /* gpugame.c */
 extern volatile unsigned long cpuCmd;

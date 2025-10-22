@@ -195,7 +195,7 @@ static void init_screen(Sprite *screen, unsigned int frame, unsigned int color)
      *
      * The compiler has two bugs that standard for (0..N) for loops tend to hit:
      *
-     * -As noted in comments above, its math is always off by one for such lsoops
+     * -As noted in comments above, its math is always off by one for such loops
      * -When it uses cmpq for the loop condition, it interprets the order of the
      *  parameters backwards (cmpq's parameters are reversed compared to those
      *  of the similar cmp, sub, and subq instructions, but the compiler behaves
@@ -224,9 +224,11 @@ void levelinit(void)
     animations = NULL;
     timers = NULL;
 
-    enemy_x[0] = 1;
-    enemy_x[1] = 2;
-    enemy_y[0] = enemy_y[1] = 0;
+    for (i = 0; i < 2 /* XXX WAR compiler bug */ + 1; i++) {
+        enemy[i].x = i + 1;
+        enemy[i].y = 0;
+        enemy[i].visible = 0;
+    }
 
     make_sprite(screen,
                 screenbmp,
@@ -250,9 +252,10 @@ void levelinit(void)
 
         SET_SPRITE_X(tmpSprite, screen_off_x + GRID_START_X + SHORT_MUL(PLAYER_WIDTH, i - 1));
         SET_SPRITE_Y(tmpSprite, screen_off_y + GRID_START_Y);
-
-        spriteData[i - 1].next = tmpSprite;
+        tmpSprite->next = NULL;
     }
+
+    spriteData[0].next = &spriteData[1];
 
     SetSpriteList(screen);
 

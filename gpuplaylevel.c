@@ -67,17 +67,53 @@ static void update_timers(void)
     }
 }
 
+static void show_enemy_sprite(void *data)
+{
+    unsigned int i = (unsigned int)data;
+    Sprite **s = &spriteData[1].next;
+    Sprite *enemy_sprite = &spriteData[i + 2];
+
+    enemy[i].visible = 1;
+
+    while (*s) {
+        s = &(*s)->next;
+    }
+
+    *s = enemy_sprite;
+}
+
+static void hide_enemy_sprite(void *data)
+{
+    unsigned int i = (unsigned int)data;
+    Sprite **s = &spriteData[1].next;
+    Sprite *enemy_sprite = &spriteData[i + 2];
+
+    enemy[i].visible = 0;
+
+    while (*s != enemy_sprite) {
+        s = &(*s)->next;
+    }
+
+    *s = (*s)->next;
+}
+
 static void move_enemy(void *data)
 {
     Animation *a;
     unsigned int i = (unsigned int)data;
 
-    ++enemy_y[i];
+    if (enemy[i].visible == 0) {
+        show_enemy_sprite(data);
+        queue_enemy_move(data);
+        return;
+    }
+
+    ++enemy[i].y;
 
     a = &animationData[i + 1];
     a->sprite = &spriteData[i + 2];
-    a->endX = screen_off_x + GRID_START_X + SHORT_MUL(enemy_x[i], GRID_SIZE_X);
-    a->endY = screen_off_y + GRID_START_Y + SHORT_MUL(enemy_y[i], GRID_SIZE_Y);
+    a->endX = screen_off_x + GRID_START_X + SHORT_MUL(enemy[i].x, GRID_SIZE_X);
+    a->endY = screen_off_y + GRID_START_Y + SHORT_MUL(enemy[i].y, GRID_SIZE_Y);
     a->speedPerTick = 2;
     a->callback = &queue_enemy_move;
     a->callbackData = data;
@@ -90,13 +126,17 @@ static void queue_enemy_move(void *data)
 {
     Timer *t;
     unsigned int i = (unsigned int)data;
+    void (*callback)(void *) = &move_enemy;
 
-    if (enemy_y[i] >= GRID_MAX_Y) return;
+    /* enemy[i].y >= GRID_MAX_Y here hits a compiler bug: Comparison is backwards */
+    if (enemy[i].y == GRID_MAX_Y) {
+        callback = &hide_enemy_sprite;
+    }
 
     t = &timerData[i];
-    t->endTick = ticks + 180;
     t->data = data;
-    t->callback = &move_enemy;
+    t->callback = callback;
+    t->endTick = ticks + 180;
 
     t->next = timers;
     timers = t;
@@ -192,10 +232,20 @@ void playlevel(void)
 
         /* If locations have settled... */
         if (!animations) {
-            for (i = 0; i < 3; i++) {
+            for (i = 0; i != 2; i++) {
+                /*
+                 * XXX WAR another compiler bug: If the (enemy[i].visible != 0)
+                 * clause is listed first instead of last here, the compiler
+                 * entirely omits the last comparison needed to check whether
+                 * the y coordinates match! Hence any time the player moves into
+                 * the same column as the enemy, they are eaten! Rearranging the
+                 * logic as it is now works around this somehow, and also
+                 * results in slightly better assembly output overall.
+                 */
                 /* ... and an enemy is at the same location as the player... */
-                if ((enemy_x[i] == player_x) &&
-                    (enemy_y[i] == player_y)) {
+                if ((enemy[i].x == player_x) &&
+                    (enemy[i].y == player_y) &&
+                    (enemy[i].visible != 0)) {
                     /* ... they have been eaten! */
                     end_str = eaten_str;
                     ChangeMusicGPU(mus_main);
