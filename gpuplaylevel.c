@@ -73,6 +73,9 @@ static void show_enemy_sprite(void *data)
     Sprite **s = &spriteData[1].next;
     Sprite *enemy_sprite = &spriteData[i + 2];
 
+    SET_SPRITE_X(enemy_sprite, screen_off_x + GRID_START_X + SHORT_MUL(PLAYER_WIDTH, enemy[i].x));
+    SET_SPRITE_Y(enemy_sprite, screen_off_y + GRID_START_Y + SHORT_MUL(PLAYER_HEIGHT, enemy[i].y));
+
     enemy[i].visible = 1;
 
     while (*s) {
@@ -89,26 +92,42 @@ static void hide_enemy_sprite(void *data)
     Sprite *enemy_sprite = &spriteData[i + 2];
 
     enemy[i].visible = 0;
+    enemy[i].delta_x = 0;
+    enemy[i].delta_y = 0;
 
     while (*s != enemy_sprite) {
         s = &(*s)->next;
     }
 
     *s = (*s)->next;
+    enemy_sprite->next = NULL;
+
+    queue_enemy_move(data);
 }
 
 static void move_enemy(void *data)
 {
     Animation *a;
     unsigned int i = (unsigned int)data;
+    unsigned int spawn_index;
 
     if (enemy[i].visible == 0) {
-        show_enemy_sprite(data);
+        spawn_index = get_rand_entry(spawn_indices);
+        if (spawn_index != 0) {
+            spawn_index--;
+            enemy[i].x = spawn_data[spawn_index].x;
+            enemy[i].y = spawn_data[spawn_index].y;
+            enemy[i].delta_x = spawn_data[spawn_index].delta_x;
+            enemy[i].delta_y = spawn_data[spawn_index].delta_y;
+            show_enemy_sprite(data);
+        }
+
         queue_enemy_move(data);
         return;
     }
 
-    ++enemy[i].y;
+    enemy[i].x += enemy[i].delta_x;
+    enemy[i].y += enemy[i].delta_y;
 
     a = &animationData[i + 1];
     a->sprite = &spriteData[i + 2];
@@ -128,8 +147,13 @@ static void queue_enemy_move(void *data)
     unsigned int i = (unsigned int)data;
     void (*callback)(void *) = &move_enemy;
 
-    /* enemy[i].y >= GRID_MAX_Y here hits a compiler bug: Comparison is backwards */
-    if (enemy[i].y == GRID_MAX_Y) {
+    if ((enemy[i].delta_y == 1) && (enemy[i].y == GRID_MAX_Y)) {
+        callback = &hide_enemy_sprite;
+    } else if ((enemy[i].delta_y == -1) && (enemy[i].y == 0)) {
+        callback = &hide_enemy_sprite;
+    } else if ((enemy[i].delta_x == 1) && (enemy[i].x == GRID_MAX_X)) {
+        callback = &hide_enemy_sprite;
+    } else if ((enemy[i].delta_x == -1) && (enemy[i].x == 0)) {
         callback = &hide_enemy_sprite;
     }
 

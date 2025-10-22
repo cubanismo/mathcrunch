@@ -50,6 +50,39 @@ Timer *timers;
 
 Enemy enemy[2];
 
+const unsigned long spawn_indices[64] = {
+     1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15, 16,
+    17, 18, 19, 20, 21, 22,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+     0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+     0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+};
+
+const EnemySpawn spawn_data[22] = {
+/*    x  y  dX, dY */
+    { 0, 0,  1,  0 },
+    { 0, 1,  1,  0 },
+    { 0, 2,  1,  0 },
+    { 0, 3,  1,  0 },
+    { 0, 4,  1,  0 },
+    { 0, 4,  0, -1 },
+    { 1, 4,  0, -1 },
+    { 2, 4,  0, -1 },
+    { 3, 4,  0, -1 },
+    { 4, 4,  0, -1 },
+    { 5, 4,  0, -1 },
+    { 5, 4, -1,  0 },
+    { 5, 3, -1,  0 },
+    { 5, 2, -1,  0 },
+    { 5, 1, -1,  0 },
+    { 5, 0, -1,  0 },
+    { 5, 0,  0,  1 },
+    { 4, 0,  0,  1 },
+    { 3, 0,  0,  1 },
+    { 2, 0,  0,  1 },
+    { 1, 0,  0,  1 },
+    { 0, 0,  0,  1 },
+};
+
 unsigned long count;
 
 unsigned long *mult_vals;
@@ -241,8 +274,8 @@ int start()
     GD_Install(GD_Bios);
 #endif
 
-    doSplash(u235sebmp);
-    doSplash(titlebmp);
+    /*doSplash(u235sebmp);
+    doSplash(titlebmp); */
 
     blitGpuOverlay(&gpu_common);
     printf("Done blitting GPU common code\n");

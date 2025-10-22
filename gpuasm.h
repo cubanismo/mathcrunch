@@ -30,6 +30,7 @@ extern void draw_string_off(const Sprite *sprite,
                             void *str,
                             unsigned long frame_offset);
 extern void update_animations(void);
+extern unsigned int get_rand_entry(const unsigned long *val_array);
 extern unsigned int pick_numbers(const unsigned long *val_array,
                                  unsigned int multiple_of);
 

@@ -30,6 +30,7 @@ GPUCODE_OFFSET	.equ	(GPUGAME_CODESIZE + 7) & ~7	; Phrase-align this file's code
 		.globl	_gpuasm_size
 		.globl	_gpuasm_loc
 		.globl	_update_animations
+		.globl	_get_rand_entry
 		.globl	_pick_numbers
 
 		.extern	_animations
@@ -369,6 +370,21 @@ done:
 	addqt	#4,ST
 
 	load	(ST),TMP		; RTS
+	jump	T,(TMP)
+	addqt	#4,ST
+
+; C-compatible wrapper around get_rand_entry
+_get_rand_entry:
+	move	r0,r14
+
+	move	PC,TMP
+	subqt	#4,ST
+	addqt	#10,TMP
+	jr	T,get_rand_entry
+	store	TMP,(ST)
+
+	move	r13,r0
+	load	(ST),TMP
 	jump	T,(TMP)
 	addqt	#4,ST
 

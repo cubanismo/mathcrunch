@@ -57,8 +57,17 @@ typedef struct {
 typedef struct Enemy {
     unsigned long x;
     unsigned long y;
+    unsigned long delta_x;
+    unsigned long delta_y;
     unsigned long visible;
 } Enemy;
+
+typedef struct EnemySpawn {
+    unsigned long x;
+    unsigned long y;
+    unsigned long delta_x;
+    unsigned long delta_y;
+} EnemySpawn;
 
 extern const GpuOverlay gpu_playlevel;
 
@@ -78,6 +87,8 @@ extern unsigned long multiple_of;
 extern unsigned int num_multiples_remaining;
 extern const GpuOverlay *nextOverlay;
 extern Enemy enemy[2];
+extern const unsigned long spawn_indices[64];
+extern const EnemySpawn spawn_data[22];
 
 /* gpugame.c */
 extern volatile unsigned long cpuCmd;

@@ -227,6 +227,8 @@ void levelinit(void)
     for (i = 0; i < 2 /* XXX WAR compiler bug */ + 1; i++) {
         enemy[i].x = i + 1;
         enemy[i].y = 0;
+        enemy[i].delta_x = 0;
+        enemy[i].delta_y = 0;
         enemy[i].visible = 0;
     }
 
