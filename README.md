@@ -2,15 +2,20 @@
 
 This is a small game I wrote both to help my kids with their math skills, and to demonstrate
 how to use the Atari/Brainstorm JRISC C compiler in a real-world setting. The majority of the
-gameplay, rendering, and animation logic is handled by C code running on the GPU.
+gameplay, rendering, and animation logic is handled by C code running on the GPU. The core
+GPU routines and build system support loading an aribtrary number of GPU code "overlays",
+each defined in a separate C file, to overcome the limitation that all GPU code must fit in
+the GPU's 4KB of local memory to run well.
 
 ## Overview of the code
 
 The code is laid out as follows:
 
 * **startup.s** - The standard system init code, with some variables renamed to be accessible in C, and the addition of some code to initialize the U-235 Sound Engine. Additionally, this contains the interrupt handlers that update the object list and dispatch commands from the GPU to 68k routines (E.g., to change the song U-235 is playing, or play a sound).
-* **gpugame.c** - The gameplay init code, screen rendering, main gameplay loop, and most of its supporting logic.
-* **gpuasm.s** - A few routines supporting gpugame.c. Besides the text rendering routine, which I borrowed from another project, this is largely used to work around compiler bugs by hand-coding some functions that otherwise could have been written in C as well. There's nothing in here I'd consider an optimization hand-code, though I did shrink code down where possible to help all the logic fit better.
+* **gpucommon.c** - The GPU bootstrap code, some functions shared by gpulevelinit.c and gpuplaylevel.c, and the GPU overlay management.
+* **gpulevelinit.c** - The gameplay init code, main screen rendering, and most supporting logic.
+* **gpuplaylevel.c** - The main gameplay loop, input handling, enemy AI, and other supporting logic.
+* **gpuasm.s** - A few routines supporting gpulevelinit.c and gpuplaylevel.c. Besides the text rendering routine, which I borrowed from another project, this is largely used to work around compiler bugs by hand-coding some functions that otherwise could have been written in C as well. There's nothing in here I'd consider an optimization hand-code, though I did shrink code down where possible to help all the logic fit better.
 * **main.c** - 68k C code used to display intro splash screens, bootstrap the GPU code, and handle some of the 68k commands from the GPU. Some data tables are also defined here.
 * **sprintf.c** - 68k C code for sprintf and printf routines.
 * **utils.s** - Misc. 68k C compiler arithmetic helper functions.
@@ -75,7 +80,7 @@ Note that in order to include your JRISC C objects in the usual `make clean` rul
 OBJS = ... $(CGPUOBJS)
 ```
 
-Additionally, note the build rules for GPU/DSP C files generate intermeediate assembly files named `g_[your_base_file_name].s`. You can safely ignore these, and you probably want to add a rule such as `g_*.s` to your .gitignore file to avoid checking them in. They will be deleted by the default `clean` rule. Feel free to peruse these files to better understand the code the compilers are generating. It's a great way to build an understanding of JRISC, and also the only way to figure out what's going on when you think you may be encountering a compiler bug, of which there are several (See comments in gpugame.c).
+Additionally, note the build rules for GPU/DSP C files generate intermediate assembly files named `g_[your_base_file_name].s`. You can safely ignore these, and you probably want to add a rule such as `g_*.s` to your .gitignore file to avoid checking them in. They will be deleted by the default `clean` rule. Feel free to peruse these files to better understand the code the compilers are generating. It's a great way to build an understanding of JRISC, and also the only way to figure out what's going on when you think you may be encountering a compiler bug, of which there are several (See comments in gpugame.c).
 
 ## Enabling debug output
 
@@ -100,4 +105,4 @@ The game is currently pretty simple, as it's in the alpha/proof-of-concept state
 
 ## Acknowledgements
 
-Thanks to those who built the tools used here, those who kept them around long enough for myself and others to be able to use them, and the authors of the MOD files referenced in music.s.
+Thanks to those who built the tools used here, those who kept them around long enough for myself and others to be able to use them, and the authors of the MOD files referenced in music.s. Thanks to [Bastian Schick](https://github.com/42Bastian) for the random number pseudo-routine and various tips.
