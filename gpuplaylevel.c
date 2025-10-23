@@ -182,7 +182,9 @@ void playlevel(void)
     Animation *a, *aLocal;
 
     queue_enemy_move((void *)0);
-    queue_enemy_move((void *)1);
+    if (level_num > 3 /* XXX WAR compiler bug */ + 1) {
+        queue_enemy_move((void *)1);
+    }
 
     while (num_multiples_remaining) {
         oldTicks = ticks;
