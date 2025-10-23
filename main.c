@@ -252,6 +252,7 @@ void doSplash(const unsigned char *splashbmp) {
 int start()
 {
     long unsigned musicAddr;
+    unsigned long int uniqRandSeed = 0;
 
     level_num = 0;
 
@@ -274,11 +275,20 @@ int start()
     GD_Install(GD_Bios);
 #endif
 
-    /*doSplash(u235sebmp);
-    doSplash(titlebmp); */
+    doSplash(u235sebmp);
+
+    uniqRandSeed = (unsigned long int)GetU235SERand();
+
+    doSplash(titlebmp);
 
     blitGpuOverlay(&gpu_common);
     printf("Done blitting GPU common code\n");
+
+    uniqRandSeed |= ((unsigned long int)GetU235SERand() << 16);
+
+    printf("Unique Rand seed 0x%08x\n", uniqRandSeed);
+
+    rnd = rnd_seed ^ uniqRandSeed;
 
     while (++level_num < 9) {
         sprintf(levelnum_str, "%u", level_num);

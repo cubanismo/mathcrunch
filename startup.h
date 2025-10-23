@@ -44,6 +44,8 @@ extern unsigned long m6_vals[];
 extern unsigned long m7_vals[];
 extern unsigned long m8_vals[];
 extern unsigned long m9_vals[];
+extern unsigned long rnd;
+extern unsigned long rnd_seed;
 extern short screen_off_x;
 extern short screen_off_y;
 extern volatile unsigned long gpu_running;
@@ -58,6 +60,7 @@ extern volatile unsigned long gpu_running;
 #define PLAYER_WIDTH 40
 #define PLAYER_HEIGHT 32
 
+extern unsigned short int GetU235SERand(void);
 extern long unsigned ChangeMusic(void *modFilePtr);
 extern void printStats(void);
 extern void stop68k(void);

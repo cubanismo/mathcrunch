@@ -35,6 +35,7 @@ GPUCODE_OFFSET	.equ	(GPUGAME_CODESIZE + 7) & ~7	; Phrase-align this file's code
 
 		.extern	_animations
 		.extern	_square_data
+		.extern	_rnd
 
 		.text
 		.dphrase
@@ -410,7 +411,7 @@ _get_rand_entry:
 ; If adding usage of additional registers, ensure all callers (namely
 ; _pick_numbers) are updated accordingly.
 get_rand_entry:
-	movei	#rnd,r13
+	movei	#_rnd,r13
 	load	(r13),r11
 
 	move	r11,r10
@@ -521,8 +522,6 @@ _pick_numbers:
 	addqt	#4,ST
 
 		.long
-
-rnd:	.dc.l	$3543532
 
 		.68000
 _gpuasm_end:

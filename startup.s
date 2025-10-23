@@ -110,6 +110,7 @@ PLAYER_HEIGHT	.equ	32
 		.globl  height
 		.globl	_screen_off_x
 		.globl	_screen_off_y
+		.globl	_GetU235SERand
 		.globl	_ChangeMusic
 		.globl	_stop68k
 		.globl	_gpu_str
@@ -124,6 +125,8 @@ PLAYER_HEIGHT	.equ	32
 		.globl	_eaten_str
 		.globl	_press_c_str
 		.globl	_spriteData
+		.globl	_rnd
+		.globl	_rnd_seed
 ; Externals
 		.extern	_start
 		.extern _printStats
@@ -319,6 +322,14 @@ InitU235se:
 		move.w	#$100, JOYSTICK
 
 		movem.l	(sp)+,d0/a0-a1
+		rts
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; unsigned short int GetU235SERand(void)
+;
+_GetU235SERand:
+		move.l	U235SE_rng, d0
+		and.l	#$0000ffff, d0
 		rts
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -696,6 +707,7 @@ _m9_vals:	.dc.l	 9,18,27,36,45,54,63,72,81,90,99, 9,18,27,36,45
 		.dc.l	54,63,72,81,90,99, 9,18,27,36,45,54,63,72,81,90
 		.dc.l	 3, 6,16,19,21,23,29,34,38,39,40,41,42,44,47,49
 		.dc.l	52,56,59,64,66,69,70,74,78,79,82,89,91,92,97,98
+_rnd_seed:	.dc.l	$3543532
 
 		.bss
 		.dphrase
@@ -722,6 +734,7 @@ _levelnum_str:	.ds.b	8
 _levelname_str:	.ds.b	64
 _scoreval_str:	.ds.b	16
 playsoundcmds:	.ds.l	3
+_rnd:		.ds.l	1
 
 		.phrase
 _screenbmp:	.ds.l	BMP_WIDTH*BMP_HEIGHT*(PPP>>1)*2
