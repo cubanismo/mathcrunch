@@ -72,8 +72,15 @@ sprites.o: $(SPRITE_GFX)
 
 $(CGPUOVERLAYOBJS): CFLAGS_JRISC += -mstk=0 -morg=`sh codedata.sh gpucommon.o _gpucommon_size endaddr`
 
-g_gpugame_codesize.inc: gpulevelinit.o
-	@echo "GPUGAME_CODESIZE .equ (\$$`symval $< _gpulevelinit_size` + \$$`sh codedata.sh gpucommon.o _gpucommon_size size`)" | tee $@
+g_gpugame_codesize.inc: gpuplaylevel.o gpulevelinit.o
+	@echo "GPUPLAYLEVEL_CODESIZE	.equ \$$`symval gpuplaylevel.o _gpuplaylevel_size`" | tee $@
+	@echo "GPULEVELINIT_CODESIZE	.equ \$$`symval gpulevelinit.o _gpulevelinit_size`" | tee -a $@
+	@echo "GPUCOMMON_CODESIZE	.equ \$$`sh codedata.sh gpucommon.o _gpucommon_size size`" | tee -a $@
+	@echo ".if GPUPLAYLEVEL_CODESIZE > GPULEVELINIT_CODESIZE" | tee -a $@
+	@echo "  GPUGAME_CODESIZE	.equ (GPUPLAYLEVEL_CODESIZE + GPUCOMMON_CODESIZE)" | tee -a $@
+	@echo ".else" | tee -a $@
+	@echo "  GPUGAME_CODESIZE	.equ (GPULEVELINIT_CODESIZE + GPUCOMMON_CODESIZE)" | tee -a $@
+	@echo ".endif" | tee -a $@
 GENERATED += g_gpugame_codesize.inc
 
 g_%.cry:%.tga
