@@ -224,6 +224,10 @@ void levelinit(void)
     animations = NULL;
     timers = NULL;
 
+    enemy_x[0] = 1;
+    enemy_x[1] = 2;
+    enemy_y[0] = enemy_y[1] = 0;
+
     make_sprite(screen,
                 screenbmp,
                 BMP_PHRASES * 4,

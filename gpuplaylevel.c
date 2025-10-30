@@ -29,6 +29,8 @@
 #include "music.h"
 #include "u235se.h"
 
+static void queue_enemy_move(void *data);
+
 static void ChangeMusicGPU(void *music)
 {
     cpuData0 = music;
@@ -50,16 +52,54 @@ static void myclamp(int *val, int min, int max) {
 static void update_timers(void)
 {
     Timer **t = &timers;
+    void *data;
+    void (*callback)(void *data);
 
     while (*t) {
         if (ticks >= (*t)->endTick) {
-            (*t)->animation = animations;
-            animations = (*t)->animation;
+            data = (*t)->data;
+            callback = (*t)->callback;
             *t = (*t)->next;
+            callback(data);
         } else {
             t = &(*t)->next;
         }
     }
+}
+
+static void move_enemy(void *data)
+{
+    Animation *a;
+    unsigned int i = (unsigned int)data;
+
+    ++enemy_y[i];
+
+    a = &animationData[i + 1];
+    a->sprite = &spriteData[i + 2];
+    a->endX = screen_off_x + GRID_START_X + SHORT_MUL(enemy_x[i], GRID_SIZE_X);
+    a->endY = screen_off_y + GRID_START_Y + SHORT_MUL(enemy_y[i], GRID_SIZE_Y);
+    a->speedPerTick = 2;
+    a->callback = &queue_enemy_move;
+    a->callbackData = data;
+
+    a->next = animations;
+    animations = a;
+}
+
+static void queue_enemy_move(void *data)
+{
+    Timer *t;
+    unsigned int i = (unsigned int)data;
+
+    if (enemy_y[i] >= GRID_MAX_Y) return;
+
+    t = &timerData[i];
+    t->endTick = ticks + 180;
+    t->data = data;
+    t->callback = &move_enemy;
+
+    t->next = timers;
+    timers = t;
 }
 
 void playlevel(void)
@@ -69,12 +109,16 @@ void playlevel(void)
     unsigned int oldPad1 = 0;
     unsigned int newPad1;
     unsigned int printDelay = 0;
+    unsigned int i;
     Sprite *screen = &spriteData[0];
     int player_x = 0;
     int player_y = 0;
     unsigned int sprite_frame = 1;
     char *end_str = win_str;
     Animation *a, *aLocal;
+
+    queue_enemy_move((void *)0);
+    queue_enemy_move((void *)1);
 
     while (num_multiples_remaining) {
         oldTicks = ticks;
@@ -146,6 +190,24 @@ void playlevel(void)
             }
         }
 
+        /* If locations have settled... */
+        if (!animations) {
+            for (i = 0; i < 3; i++) {
+                /* ... and an enemy is at the same location as the player... */
+                if ((enemy_x[i] == player_x) &&
+                    (enemy_y[i] == player_y)) {
+                    /* ... they have been eaten! */
+                    end_str = eaten_str;
+                    ChangeMusicGPU(mus_main);
+                    screen->next = NULL;
+                    break;
+                }
+            }
+
+            /* If the player was eaten, break the main loop */
+            if (!screen->next) break;
+        }
+
         a = NULL;
 
         /*
@@ -185,6 +247,7 @@ void playlevel(void)
             a->endX = screen_off_x + GRID_START_X + SHORT_MUL(player_x, GRID_SIZE_X);
             a->endY = screen_off_y + GRID_START_Y + SHORT_MUL(player_y, GRID_SIZE_Y);
             a->speedPerTick = 4;
+            a->callback = NULL;
             a->next = animations;
             animations = a;
         }

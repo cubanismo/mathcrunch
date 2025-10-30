@@ -34,6 +34,7 @@ extern char score_str[];
 extern char scoreval_str[];
 extern char win_str[];
 extern char lose_str[];
+extern char eaten_str[];
 extern char press_c_str[];
 extern unsigned long m2_vals[];
 extern unsigned long m3_vals[];

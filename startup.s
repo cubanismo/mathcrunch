@@ -121,6 +121,7 @@ PLAYER_HEIGHT	.equ	32
 		.globl	_scoreval_str
 		.globl	_win_str
 		.globl	_lose_str
+		.globl	_eaten_str
 		.globl	_press_c_str
 		.globl	_spriteData
 ; Externals
@@ -659,6 +660,7 @@ _score_str:	.dc.b	'Score:',0
 _level_str:	.dc.b	'Level:',0
 _win_str:	.dc.b	'        Congratulations! You Won!',0
 _lose_str:	.dc.b	'That number is not a multiple! Game Over.',0
+_eaten_str:	.dc.b	'  A monster has crunched you! Game Over.',0
 _press_c_str:	.dc.b	'          Press "C" to continue',0
 
 		.long

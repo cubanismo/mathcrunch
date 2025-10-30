@@ -48,6 +48,9 @@ Animation *animations;
 Timer timerData[4];
 Timer *timers;
 
+unsigned long enemy_x[2];
+unsigned long enemy_y[2];
+
 unsigned long count;
 
 unsigned long *mult_vals;

@@ -44,12 +44,16 @@ typedef struct Animation {
 
     unsigned int endX;                          /* Off 12 */
     unsigned int endY;                          /* Off 16 */
+
+    void (*callback)(void *data);               /* Off 20: Run after complete */
+    void *callbackData;                         /* Off 24: Callback parameter */
 } Animation; /* Size = 20 */
 
 typedef struct Timer {
     struct Timer *next;
-    struct Animation *animation;
     unsigned int endTick;
+    void *data;
+    void (*callback)(void *data);
 } Timer;
 
 extern Sprite spriteData[];
